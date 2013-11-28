@@ -35,6 +35,33 @@
   text-align: center;
 }
 
+.apps ol > li.iconfolder > ol > li {
+  position: relative;
+  width: 100%;
+  display: inline-block;
+  float: none;
+  margin: 0.5rem 0 0 0.5rem;
+}
+
+.apps ol > li.iconfolder:before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 7.2rem;
+  height: 7.2rem;
+  margin: 0.2rem 0 0 -3.1rem;
+  background: rgba(0, 0, 255, 0);
+  border: 0.2rem solid rgba(255, 255, 255, .5);
+  border-bottom: 0.3rem solid #ccc;
+  z-index: 10;
+  border-radius: 20%;
+  -moz-box-sizing: border-box;
+  background-clip: content-box;
+}
+
+
+
 /* Maximum 16 icons for page */
 .apps ol > li:nth-child(17) {
   display: none;

@@ -224,6 +224,7 @@ var DockManager = (function() {
     },
 
     onDragStop: function dm_onDragStop(callback) {
+      console.log('---> dm_onDragStop START');
       container.addEventListener(touchstart, handleEvent);
       var numApps = dock.getNumIcons();
 
@@ -234,6 +235,7 @@ var DockManager = (function() {
 
       calculateDimentions(numApps);
       rePosition(numApps, callback);
+      console.log('---> dm_onDragStop END');
     },
 
     onDragStart: function dm_onDragStart() {

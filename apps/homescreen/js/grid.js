@@ -980,6 +980,7 @@ var GridManager = (function() {
    */
   function convertDescriptorsToIcons(pageState) {
     var icons = pageState.icons;
+    var ii;
     for (var i = 0; i < icons.length; i++) {
       var descriptor = icons[i];
       // navigator.mozApps backed app will objects will be handled
@@ -998,10 +999,24 @@ var GridManager = (function() {
           descriptor.localizedName = _(app.manifest.name);
         }
         bookmarksByOrigin[app.origin] = app;
+      } else if (descriptor.type === GridItemsFactory.TYPE.FOLDER) {
+        descriptor.id = descriptor.manifestURL = descriptor.bookmarkURL;
+        app = GridItemsFactory.create(descriptor);
+        bookmarksByOrigin[app.origin] = app;
       }
 
       var icon = icons[i] = new Icon(descriptor, app);
-      rememberIcon(icon);
+      if (descriptor.type === GridItemsFactory.TYPE.FOLDER) {
+          rememberIcon(icon);
+          for (ii = 0; ii < app.icons.length; ii++) {
+            var desChild = app.icons[ii];
+            console.log('app name:' + ii + ' :: ' + app.icons[ii].name);
+            var iconChild = new Icon(desChild, null);
+            rememberIcon(iconChild);
+          }
+      } else {
+        rememberIcon(icon);
+      }
     }
     return icons;
   }
@@ -1016,8 +1031,9 @@ var GridManager = (function() {
     appsByOrigin[app.origin] = app;
 
     var manifest = app.manifest ? app.manifest : app.updateManifest;
-    if (!manifest)
+    if (!manifest || HIDDEN_ROLES.indexOf(manifest.role) !== -1) {
       return;
+    }
 
     var entryPoints = manifest.entry_points;
     if (!entryPoints || manifest.type !== 'certified') {
@@ -1138,7 +1154,8 @@ var GridManager = (function() {
       isHosted: isHosted(app),
       hasOfflineCache: hasOfflineCache(app),
       type: app.type,
-      id: app.id
+      id: app.id,
+      hangApps: app.icons || []
     };
 
     if (haveLocale) {
@@ -1433,11 +1450,13 @@ var GridManager = (function() {
     },
 
     onDragStop: function gm_onDragStop() {
+      console.log(' ---> gm_onDragStop START');
       delete document.body.dataset.dragging;
       dragging = false;
       delete document.body.dataset.transitioning;
       ensurePanning();
       ensurePagesOverflow(removeEmptyPages);
+      console.log(' ---> gm_onDragStop STOP');
     },
 
     /*
@@ -1455,6 +1474,34 @@ var GridManager = (function() {
       extra = extra || {};
 
       processApp(app, null, gridPageOffset);
+
+      if (extra.callback) {
+        extra.callback();
+      }
+    },
+
+    /*
+     * Adds a new Folder to the layout when the user create New Folder
+     *
+     * @param {Application} app
+     *                      The folder object
+     * @param {Object}      gridPageOffset
+     *                      Position to install the app: number (page index)
+     * @param {Object}      extra
+     *                      Optional parameters
+     */
+    installAt: function gm_installAt(app, gridPageOffset, extra) {
+      extra = extra || {};
+
+      processApp(app, null, gridPageOffset, extra);
+
+      if (app.type === GridItemsFactory.TYPE.FOLDER) {
+        window.dispatchEvent(new CustomEvent('folderInstalled', {
+          'detail': {
+            'folder': app
+          }
+        }));
+      }
 
       if (extra.callback) {
         extra.callback();
