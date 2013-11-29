@@ -993,7 +993,6 @@ Page.prototype = {
       window.removeEventListener('hashchange', enableTap);
       document.body.removeAttribute('disabled-tapping');
       document.removeEventListener('folderopened', enableTap);
-      olist.removeAttribute('disabled');
       callback && callback();
     };
 
