@@ -222,6 +222,12 @@ var FolderManager = (function() {
     }]
   };
 
+  /*
+   * This function combines 2 icons into one.
+   * To draw on canvas, get object that accesses to canvas API.
+   * iconBlobs : This is Array which has rendered icons combined into one icon.
+   * callback : Callback when icon is successfully combined.
+   */
   function _makeIcon(iconBlobs, callback) {
     // Create canvas context for drawing folder icon
     var canvas = document.createElement('canvas');

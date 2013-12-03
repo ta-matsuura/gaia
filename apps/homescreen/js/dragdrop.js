@@ -283,6 +283,17 @@ var DragDropManager = (function() {
         icons[0].isInFolder = true;
         icons[1].isInFolder = true;
 
+        /*
+         * if renderedIcon is null or undefined,
+         * the icon will be placed in the new position
+         */
+        if (!fIcon.descriptor.renderedIcon || !dIcon.descriptor.renderedIcon) {
+           console.log('warning --- renderedIcon is null or undefined');
+           overlapElem.classList.remove('folder');
+           draggableIcon.onDragStop(callback);
+           return;
+        }
+
         FolderManager.makeIcon(
           [fIcon.descriptor.renderedIcon, dIcon.descriptor.renderedIcon],
           function(iconcanvas) {
