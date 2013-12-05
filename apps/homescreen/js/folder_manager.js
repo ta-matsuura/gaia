@@ -435,6 +435,8 @@ var FolderViewer = (function() {
       if (app.entry_point) {
         li[i].dataset.entry_point = app.entry_point;
       }
+
+      //Image
       image[i] = new Image();
       image[i].className = 'icon';
       image[i].style.width = '64px';
@@ -454,7 +456,14 @@ var FolderViewer = (function() {
           FolderManager.addListener(contentElem);
         }
       };
+      //Label
+      var wrapper = document.createElement('span');
+      wrapper.className = 'labelWrapper';
+      var label = document.createElement('span');
+      label.textContent = app.name;
+      wrapper.appendChild(label);
       li[i].appendChild(image[i]);
+      li[i].appendChild(wrapper);
       appsElem.appendChild(li[i]);
     }
 

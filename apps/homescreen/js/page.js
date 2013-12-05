@@ -1004,6 +1004,8 @@ Page.prototype = {
     document.addEventListener('folderopened', enableTap);
     // 3. Users click on home button quickly while app are opening
     window.addEventListener('hashchange', enableTap);
+    // 4. The opened folder is in foreground
+    document.addEventListener('folderopened', enableTap);
   },
 
   /*
