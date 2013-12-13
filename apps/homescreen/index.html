@@ -8,6 +8,7 @@
     <link rel="stylesheet" type="text/css" href="style/grid.css">
     <link rel="stylesheet" type="text/css" href="style/dock.css">
     <link rel="stylesheet" type="text/css" href="everything.me/css/everything.me.css">
+    <link rel="stylesheet" type="text/css" href="style/folder.css">
 
     <!-- Shared code -->
     <script type="text/javascript" src="shared/js/l10n.js"></script>
@@ -47,6 +48,7 @@
     <script type="text/javascript" defer src="everything.me/js/everything.me.js"></script>
     <script type="text/javascript" defer src="js/homescreen.js"></script>
     <script type="text/javascript" defer src="js/configurator.js"></script>
+    <script type="text/javascript" defer src="js/folder_manager.js"></script>
 
     <link rel="resource" type="application/l10n" href="locales/locales.ini">
 
@@ -78,6 +80,29 @@
     </header>
 
     <section is="search-page" id="search-page"></section>
+
+    <div id="folderOverlay" class="folderScope">
+      <div id="folder">
+        <div class="header">
+          <div class="header-content">
+            <h2 class="title"></h2>
+            <b class="close"></b>
+          </div>
+        </div>
+        <div class="content">
+          <div class="folder-apps" data-opacity-on-swipe="true">
+            <div>
+              <div class="apps-wrapper">
+                <ul class="static"></ul>
+              </div>
+            </div>
+          </div>
+          <div class="image">
+            <div class="image-overlay"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div id="icongrid" class="apps" role="main"></div>
 

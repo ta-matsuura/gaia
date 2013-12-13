@@ -1,5 +1,4 @@
 'use strict';
-
 /*
  * Icon constructor
  *
@@ -66,6 +65,7 @@ Icon.prototype = {
 
   isOfflineReady: function icon_isOfflineReady() {
     return this.descriptor.type === GridItemsFactory.TYPE.COLLECTION ||
+      this.descriptor.type === GridItemsFactory.TYPE.FOLDER ||
       !(this.descriptor.isHosted &&
       !this.descriptor.hasOfflineCache ||
       this.descriptor.type === GridItemsFactory.TYPE.BOOKMARK);
@@ -108,6 +108,8 @@ Icon.prototype = {
       dataset.isCollection = true;
       dataset.collectionId = descriptor.id;
       dataset.collectionName = descriptor.name;
+    } else if (descriptor.type === GridItemsFactory.TYPE.FOLDER) {
+      dataset.isFolder = true;
     }
 
     var localizedName = this.getName();
@@ -158,7 +160,12 @@ Icon.prototype = {
   },
 
   appendOptions: function icon_appendOptions() {
-    var options = this.container.querySelector('.options');
+    try {
+      var options = this.container.querySelector('.options');
+    } catch (e) {
+      console.log(this.descriptor.name + ' : ' + e);
+      return;
+    }
     if (options) {
       return;
     }
@@ -189,6 +196,7 @@ Icon.prototype = {
   },
 
   fetchImageData: function icon_fetchImageData() {
+    console.log('---> fetchImageData START');
     var descriptor = this.descriptor;
     var icon = descriptor.icon;
     if (!icon) {
@@ -215,6 +223,7 @@ Icon.prototype = {
         this.loadCachedIcon();
       }.bind(this)
     });
+    console.log('---> fetchImageData END');
   },
 
   loadCachedIcon: function icon_loadCachedImage() {
@@ -227,6 +236,7 @@ Icon.prototype = {
   },
 
   loadImageData: function icon_loadImageData(blob) {
+    console.log('---> loadImageData START');
     var self = this;
     var img = new Image();
     img.src = window.URL.createObjectURL(blob);
@@ -256,8 +266,10 @@ Icon.prototype = {
       console.error('error while loading the icon', img.src, '. Falling back ' +
           'to default icon.');
       window.URL.revokeObjectURL(img.src);
+      console.log('---> call loadDefaultIcon()');
       self.loadDefaultIcon(img);
     };
+    console.log('---> loadImageData END');
   },
 
   loadDefaultIcon: function icon_loadDefaultIcon(img) {
@@ -422,6 +434,9 @@ Icon.prototype = {
   update: function icon_update(descriptor, app) {
     this.app = app;
     this.updateAppStatus(app);
+    if (this.descriptor.isInFolder) {
+      return;
+    }
     var oldDescriptor = this.descriptor;
     this.descriptor = descriptor;
     descriptor.removable === true ? this.appendOptions() : this.removeOptions();
@@ -620,12 +635,14 @@ Icon.prototype = {
    * @param{Integer} scale factor of the animation
    */
   onDragStop: function icon_onDragStop(callback, tx , ty, scale) {
+    console.log('---> icon_onDragStop START');
     var container = this.container;
 
     var x = tx,
         y = ty;
 
     if (typeof x === 'undefined') {
+      console.log('---> icon_onDragStop (1)');
       var rect = container.getBoundingClientRect();
       x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
       x -= this.initXCenter;
@@ -640,7 +657,9 @@ Icon.prototype = {
     style.MozTransition = '-moz-transform .4s';
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
 
+    console.log('---> icon_onDragStop (2)');
     var finishDrag = function() {
+      console.log('---> called finishDrag START');
       delete container.dataset.dragging;
       if (draggableElem) {
         var img = draggableElem.querySelector('img');
@@ -648,6 +667,7 @@ Icon.prototype = {
         draggableElem.parentNode.removeChild(draggableElem);
       }
       callback();
+      console.log('---> called finishDrag END');
     };
 
     // We ensure that there is not an icon lost on the grid
@@ -655,17 +675,20 @@ Icon.prototype = {
       fallbackID = null;
       finishDrag();
     }, this.FALLBACK_DRAG_STOP_DELAY);
+    console.log('---> icon_onDragStop (3)');
 
     var content = draggableElem.querySelector('div');
     scale = typeof scale !== 'undefined' ? scale : 1;
     content.style.MozTransform = 'scale(' + scale + ')';
     content.addEventListener('transitionend', function tEnd(e) {
+      console.log('---> tEnd(e) START');
       e.target.removeEventListener('transitionend', tEnd);
       if (fallbackID !== null) {
         window.clearTimeout(fallbackID);
         finishDrag();
       }
     });
+    console.log('---> icon_onDragStop END');
   },
 
   getTop: function icon_getTop() {
@@ -977,6 +1000,7 @@ Page.prototype = {
       document.removeEventListener('collectionopened', enableTap);
       window.removeEventListener('hashchange', enableTap);
       document.body.removeAttribute('disabled-tapping');
+      document.removeEventListener('folderopened', enableTap);
       callback && callback();
     };
 
@@ -985,8 +1009,11 @@ Page.prototype = {
     document.addEventListener('visibilitychange', enableTap);
     // 2. The opened collection is in foreground
     document.addEventListener('collectionopened', enableTap);
+    document.addEventListener('folderopened', enableTap);
     // 3. Users click on home button quickly while app are opening
     window.addEventListener('hashchange', enableTap);
+    // 4. The opened folder is in foreground
+    document.addEventListener('folderopened', enableTap);
   },
 
   /*
@@ -999,11 +1026,11 @@ Page.prototype = {
     var olist = this.olist,
         children = this.olist.children;
 
-    if (children[index] && children[index] === icon.container) {
+    if (children[index] && children[index] === icon.container)
       return;
-    }
 
     if (!icon.container) {
+      console.log('---> appendIconAt (2)');
       icon.render();
     }
 

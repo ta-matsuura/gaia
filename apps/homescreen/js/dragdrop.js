@@ -193,6 +193,7 @@ var DragDropManager = (function() {
    * {Object} This is the DOMElement which was tapped and hold
    */
   function onStart(elem) {
+    FolderManager.init(elem);
     overlapElem = elem;
     draggableIcon = GridManager.getIcon(elem.dataset);
     draggableIconIsCollection = overlapElem.dataset.isCollection === 'true';
@@ -212,6 +213,7 @@ var DragDropManager = (function() {
    * is empty
    */
   function stop(callback) {
+    console.log('---> stop START');
     clearTimeout(disabledCheckingLimitsTimeout);
     isDisabledCheckingLimits = false;
     isDisabledDrop = false;
@@ -220,6 +222,7 @@ var DragDropManager = (function() {
     var ensureCallbackID = null;
 
     DragLeaveEventManager.send(page, function(done) {
+      console.log('---> function callback(1) ');
       if (ensureCallbackID !== null) {
         window.clearTimeout(ensureCallbackID);
         sendDragStopToDraggableIcon(callback);
@@ -229,9 +232,11 @@ var DragDropManager = (function() {
 
     // We ensure that there is not an icon lost on the grid
     ensureCallbackID = window.setTimeout(function() {
+      console.log('---> function callback(2)');
       ensureCallbackID = null;
       sendDragStopToDraggableIcon(callback);
     }, ENSURE_DRAG_END_DELAY);
+    console.log('---> stop END');
   }
 
   /*
@@ -243,12 +248,16 @@ var DragDropManager = (function() {
    *                  finishes
    */
   function sendDragStopToDraggableIcon(callback) {
+    //console.log('---> sendDragStopToDraggableIcon START');
     if (draggableIconIsCollection ||
           overlapElem.dataset.isCollection !== 'true') {
-      // If we are dragging an app or bookmark or we aren't over a collection
-      // The icon will be placed in the new position
-      draggableIcon.onDragStop(callback);
-      return;
+      if (overlapElem.dataset.isTargetfolder !== 'true') {
+        // If we are dragging an app or bookmark or we aren't over a collection
+        // The icon will be placed in the new position
+        draggableIcon.onDragStop(callback);
+        console.log('---> sendDragStopToDraggableIcon return(1)');
+        return;
+      }
     }
 
     // App should be copied
@@ -258,33 +267,130 @@ var DragDropManager = (function() {
 
     var container = draggableIcon.container;
 
-    // The app zooms out to the center of the collection
-    draggableIcon.onDragStop(function insertInCollection() {
-      container.classList.add('hidden');
-      // Calculating original position (page index and position)
-      var dataset = draggableIcon.draggableElem.dataset;
-      var page = DockManager.page;
-      if (dataset.pageType === 'page') {
-        page = GridManager.pageHelper.getPage(parseInt(dataset.pageIndex, 10));
-        if (page === GridManager.pageHelper.getCurrent()) {
-          draggableIcon.remove();
-        }
-      }
+    if ((overlapElem.dataset.isFolder === 'true') ||
+        (overlapElem.dataset.isFolder !== 'true' &&
+         overlapElem.dataset.isCollection !== 'true')) {
 
-      // We have to reload the icon in order to avoid errors on re-validations
-      // because of the object url was revoked
-      draggableIcon.loadRenderedIcon(function loaded(url) {
-        // The icon reappears without animation
-        page.appendIconAt(draggableIcon, parseInt(dataset.iconIndex, 10));
-        // Removing hover class for current collection
-        removeHoverClass();
-        previousElement = undefined;
-        sendCollectionDropApp(container.dataset);
-        window.URL.revokeObjectURL(url);
-        container.classList.remove('hidden');
-        callback();
-      });
-    }, centerX - sx, centerY - sy, 0);
+      overlapElem.dataset.isTargetfolder = null;
+      var icons;
+
+      if (overlapElem.dataset.isFolder !== 'true') {
+        icons = new Array();
+        var dIcon = GridManager.getIcon(FolderManager.getDragElem().dataset);
+        var fIcon = GridManager.getIcon(FolderManager.getFolderElem().dataset);
+        icons[0] = dIcon.descriptor;
+        icons[1] = fIcon.descriptor;
+        icons[0].isInFolder = true;
+        icons[1].isInFolder = true;
+
+        /*
+         * if renderedIcon is null or undefined,
+         * the icon will be placed in the new position
+         */
+        if (!fIcon.descriptor.renderedIcon || !dIcon.descriptor.renderedIcon) {
+           console.log('warning --- renderedIcon is null or undefined');
+           overlapElem.classList.remove('folder');
+           draggableIcon.onDragStop(callback);
+           return;
+        }
+
+        FolderManager.makeIcon(
+          [fIcon.descriptor.renderedIcon, dIcon.descriptor.renderedIcon],
+          function(iconcanvas) {
+            // The app zooms out to the center of the collection
+            draggableIcon.onDragStop(function createFolder() {
+              container.classList.add('hidden');
+
+              var uuidObj = new Blob;
+              var url = window.URL.createObjectURL(new Blob);
+              var id = url.replace('blob:', '');
+              var currPageNum = pageHelper.getCurrentPageNumber();
+
+              var olist = pageHelper.getCurrent().container.children[0];
+              var iconList = olist.children;
+              var iconsWhileDragging = Array.prototype.slice.call(
+                                         iconList, 0, iconList.length);
+
+              var gridPosition =
+                {page: pageHelper.getCurrentPageNumber(),
+                 index: iconsWhileDragging.indexOf(overlapElem)};
+
+              window.URL.revokeObjectURL(url);
+              var item = GridItemsFactory.create({
+                  'id': id,
+                  'bookmarkURL': id,
+                  'name': 'folder0001',
+                  'icon': iconcanvas.toDataURL('image/png'),
+                  'iconable': false,
+                  //"useAsyncPanZoom": params.useAsyncPanZoom,
+                  'type': GridItemsFactory.TYPE.FOLDER,
+                  'hangApps': icons
+              });
+
+              GridManager.installAt(item, null, gridPosition);
+              GridManager.ensurePagesOverflow(function() { });
+              draggableIcon.remove();
+              overlapElem.parentNode.removeChild(overlapElem);
+              callback();
+            }, centerX - sx, centerY - sy, 0);
+          }
+        );
+      } else {
+          draggableIcon.onDragStop(function insertIntoFolder() {
+            overlapElem.classList.remove('folder');
+            //アイコン達を取得する。
+            var iconObj = GridManager.getIcon(overlapElem.dataset);
+            var appObj = iconObj.app;
+            var icons = appObj.icons;
+
+            if (icons.length > 0) {
+              var descriptor = draggableIcon.descriptor;
+              descriptor.isInFolder = true;
+              icons.push(draggableIcon.descriptor);
+              draggableIcon.remove();
+            }
+            appObj.icons = icons;
+            callback();
+        }, centerX - sx, centerY - sy, 0);
+      }
+    } else {
+
+      // The app zooms out to the center of the collection
+      draggableIcon.onDragStop(function insertInCollection() {
+        console.log('---> insertInCollection START');
+        container.classList.add('hidden');
+        // Calculating original position (page index and position)
+        var dataset = draggableIcon.draggableElem.dataset;
+        var page = DockManager.page;
+        if (dataset.pageType === 'page') {
+          console.log('---> insertInCollection (1)');
+          page = GridManager.pageHelper.getPage(
+                   parseInt(dataset.pageIndex, 10));
+          if (page === GridManager.pageHelper.getCurrent()) {
+            console.log('---> insertInCollection (2)');
+            draggableIcon.remove();
+          }
+        }
+        console.log('---> insertInCollection (3)');
+
+        // We have to reload the icon in order to avoid errors on re-validations
+        // because of the object url was revoked
+        draggableIcon.loadRenderedIcon(function loaded(url) {
+          console.log('---> loaded(url) START');
+          // The icon reappears without animation
+          page.appendIconAt(draggableIcon, parseInt(dataset.iconIndex, 10));
+          // Removing hover class for current collection
+          removeHoverClass();
+          previousElement = undefined;
+          sendCollectionDropApp(container.dataset);
+          window.URL.revokeObjectURL(url);
+          container.classList.remove('hidden');
+          callback();
+          console.log('---> loaded(url) END');
+        });
+      }, centerX - sx, centerY - sy, 0);
+    }
+    //console.log('---> sendDragStopToDraggableIcon END');
   }
 
   /*
@@ -329,6 +435,11 @@ var DragDropManager = (function() {
       // If we are dragging an app/bookmark over a collection
       overCollection(draggableIcon,
         GridManager.getIcon(overlapElem.dataset), page);
+      return;
+    }
+
+    if (FolderManager.updateFolder(overlapElem, cx, cy)) {
+      // Do not process following icon layout when maked a folder.
       return;
     }
 
@@ -428,6 +539,54 @@ var DragDropManager = (function() {
     }
   }
 
+  function createFolder() {
+    var folderElem = document.createElement('li');
+    var olist = document.createElement('ol');
+    var iconElem = document.createElement('li');
+    var pages;
+    var pageNum = pageHelper.getCurrentPageNumber();
+
+    var dIconImage = new Image(30, 30);
+    var fIconImage = new Image(30, 30);
+
+    var dIcon = GridManager.getIcon(FolderManager.getDragElem().dataset);
+    var fIcon = GridManager.getIcon(FolderManager.getFolderElem().dataset);
+
+    folderElem.className = 'iconfolder';
+    olist.appendChild(iconElem);
+
+    dIconImage.src =
+      window.URL.createObjectURL(dIcon.descriptor.renderedIcon);
+    fIconImage.src =
+      window.URL.createObjectURL(fIcon.descriptor.renderedIcon);
+
+    dIconImage.onload = dIconImage.onerror = function done() {
+      console.log('---> image onload or onerror ');
+      dIconImage.style.visibility = 'visible';
+      dIconImage.onload = dIconImage.onerror = null;
+      window.URL.revokeObjectURL(dIconImage.src);
+    };
+
+    fIconImage.onload = fIconImage.onerror = function done() {
+      fIconImage.style.visibility = 'visible';
+      fIconImage.onload = fIconImage.onerror = null;
+      window.URL.revokeObjectURL(fIconImage.src);
+
+      iconElem.appendChild(dIconImage);
+      iconElem.appendChild(fIconImage);
+      folderElem.appendChild(olist);
+
+      pages = document.getElementsByClassName('page');
+      pages[pageNum].getElementsByTagName('ol')[0].insertBefore(
+       folderElem, FolderManager.getFolderElem());
+
+      pages[pageNum].getElementsByTagName('ol')[0].removeChild(
+       FolderManager.getDragElem());
+      pages[pageNum].getElementsByTagName('ol')[0].removeChild(
+       FolderManager.getFolderElem());
+    };
+  }
+
   /*
    * It's performed when the draggable element is moving
    *
@@ -465,6 +624,7 @@ var DragDropManager = (function() {
           y < rectObject.top || y > rectObject.bottom) {
         newOverlapElem = document.elementFromPoint(x, y);
         addHoverClass(newOverlapElem);
+        FolderManager.startMakeFolder(newOverlapElem);
       }
     }
 
@@ -513,6 +673,10 @@ var DragDropManager = (function() {
   }
 
   function onEnd(evt) {
+
+    if (overlapElem) {
+      overlapElem.classList.remove('hover');
+    }
     if (overlapingTimeout !== null) {
       clearTimeout(overlapingTimeout);
     }
@@ -520,8 +684,10 @@ var DragDropManager = (function() {
     window.removeEventListener(touchmove, onMove);
     window.removeEventListener(touchend, onEnd);
     stop(function dg_stop() {
+      //console.log('---> dg_stop START');
       DockManager.onDragStop(GridManager.onDragStop);
       window.dispatchEvent(new CustomEvent('dragend'));
+      //console.log('---> dg_stop END');
     });
   }
 
