@@ -61,6 +61,7 @@ var Homescreen = (function() {
         GridManager.goToLandingPage();
       }
 
+      console.log('---> addEventListener onContextMenu()');
       document.body.addEventListener('contextmenu', onContextMenu);
       IconManager.init(Configurator.getSection('tap_effect_delay'));
 
@@ -71,17 +72,21 @@ var Homescreen = (function() {
   }
 
   function onContextMenu(evt) {
+    console.log('---> onContextMenu START');
     var target = evt.target;
 
     if ('isIcon' in target.dataset) {
+      console.log('---> onContextMenu (1)');
       // Grid or Dock manager will resolve the current event
       var manager = target.parentNode === DockManager.page.olist ? DockManager :
                                                                    GridManager;
       manager.contextmenu(evt);
       if (Homescreen.isInEditMode()) {
+        console.log('---> onContextMenu (2)');
         iconGrid.addEventListener('click', onClickHandler);
       }
     } else if (!Homescreen.isInEditMode()) {
+      console.log('---> onContextMenu (3)');
       // No long press over an icon neither edit mode
       evt.preventDefault();
       var contextMenuEl = document.getElementById('contextmenu-dialog');
@@ -98,6 +103,7 @@ var Homescreen = (function() {
                         }
         );
       } else {
+        console.log('---> onContextMenu (4)');
         // only wallpaper
         LazyLoader.load(['shared/js/omadrm/fl.js', 'js/wallpaper.js'],
                       function callWallpaper() {
@@ -105,6 +111,7 @@ var Homescreen = (function() {
                       });
       }
     }
+    console.log('---> onContextMenu END');
   }
   // dismiss edit mode by tapping in an area of the view where there is no icon
   function onClickHandler(evt) {

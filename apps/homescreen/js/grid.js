@@ -369,6 +369,7 @@ var GridManager = (function() {
   }
 
   function contextmenu(evt) {
+    console.log('---> contextmenu START');
     if (isPanning) {
       return;
     }
@@ -383,6 +384,7 @@ var GridManager = (function() {
         'y': startEvent.pageY
       });
     });
+    console.log('---> contextmenu END');
   }
 
   function onTouchEnd(deltaX, evt) {
@@ -1471,13 +1473,11 @@ var GridManager = (function() {
     },
 
     onDragStop: function gm_onDragStop() {
-      console.log(' ---> gm_onDragStop START');
       delete document.body.dataset.dragging;
       dragging = false;
       delete document.body.dataset.transitioning;
       ensurePanning();
       ensurePagesOverflow(removeEmptyPages);
-      console.log(' ---> gm_onDragStop STOP');
     },
 
     /*
