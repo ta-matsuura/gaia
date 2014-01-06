@@ -537,6 +537,7 @@ var FolderViewer = (function() {
   var appsElem = contentElem.querySelector('.apps-wrapper .static');
   var appList = {};
   var folderIcon;
+  var state = 'none';
 
   function onFolderLaunch(evt) {
     FolderManager.addListener(contentElem);
@@ -599,6 +600,7 @@ var FolderViewer = (function() {
       appsElem.appendChild(li[i]);
     }
     closeElem.addEventListener('click', hideUI);
+    window.addEventListener('hashchange', hideUI);
     showUI();
   }
 
@@ -610,6 +612,7 @@ var FolderViewer = (function() {
         document.dispatchEvent(new CustomEvent('folderopened'));
         //Avoid to open contextmenu for wallpaer.
         folderElem.addEventListener('contextmenu', noop);
+        state = 'viewing';
       });
       folderElem.classList.add('visible');
     }, 0);
@@ -624,7 +627,9 @@ var FolderViewer = (function() {
     folderElem.classList.remove('visible');
     folderElem.removeEventListener('contextmenu', noop);
     closeElem.removeEventListener('click', hideUI);
+    window.removeEventListener('hashchange', hideUI);
     FolderManager.removeListener();
+    state = 'none';
   }
 
   function _init() {
@@ -645,9 +650,14 @@ var FolderViewer = (function() {
     return folderIcon;
   }
 
+  function _isFolderViewing() {
+    return state === 'viewing';
+  }
+
   return {
     init: _init,
-    getFolderIcon: _getFolderIcon
+    getFolderIcon: _getFolderIcon,
+    isFolderViewing: _isFolderViewing
   };
 
 })();
