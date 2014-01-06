@@ -17,11 +17,11 @@ Folder.prototype = {
   MAX_ICON: 10,
 
   launch: function fc_launch() {
-    console.log('---> launch : fc_launch');
     var features = this.getFeatures();
     // Enriching features...
     features.id = this.id;
 
+    FolderViewer.init();
     window.dispatchEvent(new CustomEvent('folderlaunch', {
       'detail': features
     }));
@@ -32,6 +32,8 @@ var FolderManager = (function() {
   var dragElem, prevElem, folderElem, range;
   var state; // none/pending/done
   var SIZE = 60;
+  var folderOverlay = document.getElementById('folderOverlay');
+  var pageHelper;
 
   function _setBorder(elem) {
     if (!elem) {
@@ -351,13 +353,13 @@ var FolderManager = (function() {
 
   function _addListener(_container) {
     container = _container;
-    container.addEventListener(touchstart, _handleEvent.bind(this), true);
+    container.addEventListener(touchstart, _handleEvent);
   }
 
   function _removeListener() {
-    this.getContainer().removeEventListener(touchstart, _handleEvent);
-    this.getContainer().removeEventListener(touchmove, _handleEvent);
-    this.getContainer().removeEventListener(touchend, _handleEvent);
+    container.removeEventListener(touchstart, _handleEvent);
+    container.removeEventListener(touchmove, _handleEvent);
+    container.removeEventListener(touchend, _handleEvent);
   }
 
   var isTouch = 'ontouchstart' in window;
@@ -365,21 +367,142 @@ var FolderManager = (function() {
   var touchmove = isTouch ? 'touchmove' : 'mousemove';
   var touchend = isTouch ? 'touchend' : 'mouseup';
 
+  function onContextMenu(evt) {
+    var target = evt.target;
+    if ('isIcon' in target.dataset) {
+      Homescreen.setMode('edit');
+    }
+    else {
+      Homescreen.setMode('normal');
+    }
+  }
+
+  function onClickHandler(evt) {
+    if (!('isIcon' in evt.target.dataset)) {
+      folderOverlay.removeEventListener('click', onClickHandler);
+      Homescreen.setMode('normal');
+    }
+    return;
+  }
+
+
   function _handleEvent(evt) {
     switch (evt.type) {
       case touchstart:
-        this.getContainer().addEventListener(touchmove, _handleEvent, true);
-        this.getContainer().addEventListener(touchend, _handleEvent);
+        container.addEventListener(touchmove, _handleEvent, true);
+        container.addEventListener(touchend, _handleEvent);
+        container.addEventListener('contextmenu', onContextMenu);
         break;
 
       case touchmove:
         break;
 
       case touchend:
-        var icon = GridManager.getIcon(evt.target.dataset);
-        icon.app.launch();
+        // During Edit Mode
+        if (Homescreen.isInEditMode()) {
+          var elem = evt.target;
+          if (elem.classList.contains('remove')) {
+            removeApp(elem);
+          } else if (elem.classList.contains('icon')) {
+            //nothing to do
+            break;
+          }
+          Homescreen.setMode('normal');
+        }
+        // During Normal Mode
+        else {
+          var icon = GridManager.getIcon(evt.target.dataset);
+          if (icon) {
+            icon.app.launch();
+          }
+          Homescreen.setMode('normal');
+        }
         break;
+
     }
+  }
+  //
+  // This func deletes icon which user selected to remove from folder view.
+  // This does
+  //  - delete icon from folder object.
+  //  - delete icon from folder view.
+  //  - update flag(hanging or not) of icon.
+  //  - move icon to homescreen.
+  //
+  function removeApp(elem) {
+
+    var icon, page;
+    var removedElem = elem.parentNode;
+    var folderIcon = FolderViewer.getFolderIcon();
+    var icons = folderIcon.descriptor.hangApps;
+    var delIcon = GridManager.getIcon(removedElem.dataset);
+
+    // Get icon by refering to parentNode of removeIcon Element.
+    // parentNode.dataset has "manifestURL" and "name" property.
+    // icon.innerHTML should be :
+    //   <img src="blob:205dfb4a-XXXXX
+    //   data-manifest-u-r-l="app://template.gaiamobile.org/manifest.webapp"
+    //   data-is-icon="true" style="width: 64px; height: 64px;" class="icon">
+    //   <span class="remove"> </span>
+    //   <span class="labelWrapper"><span>Template</span></span>"
+
+    if (delIcon.app && delIcon.descriptor) {
+
+      //delete icon from folder object
+      for (var i = 0; i < icons.length; i++) {
+        //Match descriptor of icon and delIcon.
+        if (icons[i].manifestURL === delIcon.descriptor.manifestURL) {
+          icons[i].isInFolder = false;
+          icon = GridManager.getIcon(icons[i]);
+          icons.splice(i, 1);
+
+          //Remove folder icon if no app contains.
+          if (icons.length === 0) {
+            removeFolder(folderIcon.descriptor.manifestURL);
+          }
+          break;
+        }
+      }
+      // move app to homescreen
+      var pagesNum = pageHelper.getTotalPagesNumber();
+      for (var i = 1; i <= pagesNum; i++) {
+        page = pageHelper.getPage(parseInt(i, 10));
+        if (!page) {
+          console.log(' ---> page is null or undefined');
+        } else if (page.hasEmptySlot()) {
+          if (icon.container.classList.contains('folder')) {
+            icon.container.classList.remove('folder');
+          }
+          page.appendIcon(icon);
+          break;
+        }
+        // no empty page so that new page will be added with icon.
+        if (i === pagesNum) {
+          pageHelper.addPage([icon]);
+        }
+      }
+
+      // delete icon from folder view.
+      removedElem.parentNode.removeChild(removedElem);
+
+      // save state of homescreen
+      GridManager.markDirtyState();
+    }
+    return;
+  }
+
+  function removeFolder(url) {
+    //nothing to do right now...
+    var elem = document.getElementsByClassName('icon');
+    for (var i = 1; i < elem.length; i++) {
+      if ((elem[i].dataset.isFolder === 'true') &&
+          (elem[i].manifestURL === url)) {
+        var li = elem[i];
+        li.parentNode.removeChild(li);
+        break;
+      }
+    }
+    return;
   }
 
   function _getContainer() {
@@ -388,8 +511,8 @@ var FolderManager = (function() {
 
   return {
     init: function(elem) {
-      console.log('init elem=' + elem.textContent);
       dragElem = elem;
+      pageHelper = GridManager.pageHelper;
       _clearState();
     },
     startMakeFolder: _startMakeFolder,
@@ -413,12 +536,15 @@ var FolderViewer = (function() {
   var contentElem = folderElem.getElementsByClassName('content')[0];
   var appsElem = contentElem.querySelector('.apps-wrapper .static');
   var appList = {};
+  var folderIcon;
 
   function onFolderLaunch(evt) {
+    FolderManager.addListener(contentElem);
+
     deleteAllAppsElem();
     // Get Icon info
-    var icon = GridManager.getIconForBookmark(evt.detail.id);
-    var descriptor = icon.descriptor;
+    folderIcon = GridManager.getIconForBookmark(evt.detail.id);
+    var descriptor = folderIcon.descriptor;
 
     // Set folder title
     titleElem.innerHTML = '<span>' + descriptor.name + '</span>';
@@ -441,6 +567,7 @@ var FolderViewer = (function() {
       image[i].className = 'icon';
       image[i].style.width = '64px';
       image[i].style.height = '64px';
+      image[i].dataset.isIcon = true;
       image[i].dataset.manifestURL = app.manifestURL;
       if (app.entry_point) {
         image[i].dataset.entry_point = app.entry_point;
@@ -453,7 +580,6 @@ var FolderViewer = (function() {
             window.URL.revokeObjectURL(url[ii]);
             li[ii].dataset.loaded = 'true';
           }
-          FolderManager.addListener(contentElem);
         }
       };
       //Label
@@ -461,16 +587,18 @@ var FolderViewer = (function() {
       wrapper.className = 'labelWrapper';
       var label = document.createElement('span');
       label.textContent = app.name;
+
+      // Menu button to delete the app
+      var removeButton = document.createElement('span');
+      removeButton.className = 'remove';
+
       wrapper.appendChild(label);
       li[i].appendChild(image[i]);
+      li[i].appendChild(removeButton);
       li[i].appendChild(wrapper);
       appsElem.appendChild(li[i]);
     }
-
-    closeElem.addEventListener('click', function() {
-      hideUI();
-    });
-
+    closeElem.addEventListener('click', hideUI);
     showUI();
   }
 
@@ -480,6 +608,7 @@ var FolderViewer = (function() {
       folderElem.addEventListener('transitionend', function end(e) {
         e.target.removeEventListener('transitionend', end);
         document.dispatchEvent(new CustomEvent('folderopened'));
+        //Avoid to open contextmenu for wallpaer.
         folderElem.addEventListener('contextmenu', noop);
       });
       folderElem.classList.add('visible');
@@ -487,21 +616,19 @@ var FolderViewer = (function() {
   }
 
   function hideUI() {
+    Homescreen.setMode('normal');
     headerElem.addEventListener('transitionend', function end(e) {
       e.target.removeEventListener('transitionend', end);
       folderElem.style.display = 'none';
     });
     folderElem.classList.remove('visible');
     folderElem.removeEventListener('contextmenu', noop);
+    closeElem.removeEventListener('click', hideUI);
     FolderManager.removeListener();
   }
 
-  function init() {
+  function _init() {
     window.addEventListener('folderlaunch', onFolderLaunch);
-  }
-
-  function fin() {
-    closeElem.removeEventListener('click');
   }
 
   function deleteAllAppsElem() {
@@ -514,5 +641,13 @@ var FolderViewer = (function() {
     evt.stopPropagation();
   }
 
-  init();
+  function _getFolderIcon() {
+    return folderIcon;
+  }
+
+  return {
+    init: _init,
+    getFolderIcon: _getFolderIcon
+  };
+
 })();

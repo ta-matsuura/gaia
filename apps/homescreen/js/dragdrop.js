@@ -299,7 +299,6 @@ var DragDropManager = (function() {
           function(iconcanvas) {
             // The app zooms out to the center of the collection
             draggableIcon.onDragStop(function createFolder() {
-              container.classList.add('hidden');
 
               var uuidObj = new Blob;
               var url = window.URL.createObjectURL(new Blob);

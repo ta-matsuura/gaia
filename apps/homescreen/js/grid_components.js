@@ -21,6 +21,7 @@ var GridItemsFactory = {
 var GridItem = function GridItem(params) {
   this.type = GridItemsFactory.TYPE.APP;
 
+  console.log('---> GridItem name : ' + params.name + '      removable = true');
   // Grid components are removable by default
   this.removable = true;
 

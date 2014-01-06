@@ -148,6 +148,7 @@ Icon.prototype = {
     container.appendChild(icon);
 
     if (descriptor.removable === true) {
+      console.log(' ---> name : ' + descriptor.name);
       this.appendOptions();
     }
 
@@ -160,6 +161,7 @@ Icon.prototype = {
   },
 
   appendOptions: function icon_appendOptions() {
+    console.log(' ---> icon_appendOptions START');
     try {
       var options = this.container.querySelector('.options');
     } catch (e) {
@@ -167,6 +169,7 @@ Icon.prototype = {
       return;
     }
     if (options) {
+      console.log(' ---> appendOptions return because options is null ');
       return;
     }
 
@@ -175,6 +178,7 @@ Icon.prototype = {
     options.className = 'options';
     options.dataset.isIcon = true;
     this.container.appendChild(options);
+    console.log(' ---> icon_appendOptions END');
   },
 
   removeOptions: function icon_removeOptions() {
@@ -183,6 +187,7 @@ Icon.prototype = {
       return;
     }
 
+    console.log(' ---> icon_removeOption remove options class');
     this.container.removeChild(options);
   },
 
@@ -196,7 +201,6 @@ Icon.prototype = {
   },
 
   fetchImageData: function icon_fetchImageData() {
-    console.log('---> fetchImageData START');
     var descriptor = this.descriptor;
     var icon = descriptor.icon;
     if (!icon) {
@@ -223,7 +227,6 @@ Icon.prototype = {
         this.loadCachedIcon();
       }.bind(this)
     });
-    console.log('---> fetchImageData END');
   },
 
   loadCachedIcon: function icon_loadCachedImage() {
@@ -236,7 +239,6 @@ Icon.prototype = {
   },
 
   loadImageData: function icon_loadImageData(blob) {
-    console.log('---> loadImageData START');
     var self = this;
     var img = new Image();
     img.src = window.URL.createObjectURL(blob);
@@ -266,10 +268,8 @@ Icon.prototype = {
       console.error('error while loading the icon', img.src, '. Falling back ' +
           'to default icon.');
       window.URL.revokeObjectURL(img.src);
-      console.log('---> call loadDefaultIcon()');
       self.loadDefaultIcon(img);
     };
-    console.log('---> loadImageData END');
   },
 
   loadDefaultIcon: function icon_loadDefaultIcon(img) {
@@ -635,14 +635,12 @@ Icon.prototype = {
    * @param{Integer} scale factor of the animation
    */
   onDragStop: function icon_onDragStop(callback, tx , ty, scale) {
-    console.log('---> icon_onDragStop START');
     var container = this.container;
 
     var x = tx,
         y = ty;
 
     if (typeof x === 'undefined') {
-      console.log('---> icon_onDragStop (1)');
       var rect = container.getBoundingClientRect();
       x = (Math.abs(rect.left + rect.right) / 2) % window.innerWidth;
       x -= this.initXCenter;
@@ -657,9 +655,7 @@ Icon.prototype = {
     style.MozTransition = '-moz-transform .4s';
     style.MozTransform = 'translate(' + x + 'px,' + y + 'px)';
 
-    console.log('---> icon_onDragStop (2)');
     var finishDrag = function() {
-      console.log('---> called finishDrag START');
       delete container.dataset.dragging;
       if (draggableElem) {
         var img = draggableElem.querySelector('img');
@@ -667,7 +663,6 @@ Icon.prototype = {
         draggableElem.parentNode.removeChild(draggableElem);
       }
       callback();
-      console.log('---> called finishDrag END');
     };
 
     // We ensure that there is not an icon lost on the grid
@@ -675,20 +670,17 @@ Icon.prototype = {
       fallbackID = null;
       finishDrag();
     }, this.FALLBACK_DRAG_STOP_DELAY);
-    console.log('---> icon_onDragStop (3)');
 
     var content = draggableElem.querySelector('div');
     scale = typeof scale !== 'undefined' ? scale : 1;
     content.style.MozTransform = 'scale(' + scale + ')';
     content.addEventListener('transitionend', function tEnd(e) {
-      console.log('---> tEnd(e) START');
       e.target.removeEventListener('transitionend', tEnd);
       if (fallbackID !== null) {
         window.clearTimeout(fallbackID);
         finishDrag();
       }
     });
-    console.log('---> icon_onDragStop END');
   },
 
   getTop: function icon_getTop() {
@@ -1030,7 +1022,6 @@ Page.prototype = {
       return;
 
     if (!icon.container) {
-      console.log('---> appendIconAt (2)');
       icon.render();
     }
 
