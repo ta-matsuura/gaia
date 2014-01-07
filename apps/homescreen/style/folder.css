@@ -76,14 +76,14 @@
   vertical-align: top;
   transition: transform 200ms linear;
 }
-
+/* Shake icons in edit mode */
 .folderScope #folder.animate .title,
 .folderScope #folder.animate .close,
 .folderScope #folder.animate .folder-apps
 {
   transition: opacity .4s ease;
 }
-.folderScope #folder .content,
+.folderScope #folder > .content,
 .folderScope #folder .header {
   transition: transform 380ms ease;
 }

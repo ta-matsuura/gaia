@@ -14,9 +14,9 @@ var Folder = function Folder(params, cb) {
 
 Folder.prototype = {
   __proto__: GridItem.prototype,
-  MAX_ICON: 10,
 
   launch: function fc_launch() {
+
     var features = this.getFeatures();
     // Enriching features...
     features.id = this.id;
@@ -600,36 +600,44 @@ var FolderViewer = (function() {
       appsElem.appendChild(li[i]);
     }
     closeElem.addEventListener('click', hideUI);
-    window.addEventListener('hashchange', hideUI);
+    window.addEventListener('hashchange', homeButtonHandler);
     showUI();
   }
 
   function showUI() {
     folderElem.style.display = 'block';
     window.setTimeout(function() {
-      folderElem.addEventListener('transitionend', function end(e) {
-        e.target.removeEventListener('transitionend', end);
+      headerElem.addEventListener('transitionend', function end1(e) {
+        e.target.removeEventListener('transitionend', end1);
         document.dispatchEvent(new CustomEvent('folderopened'));
-        //Avoid to open contextmenu for wallpaer.
-        folderElem.addEventListener('contextmenu', noop);
-        state = 'viewing';
       });
+       //Avoid to open contextmenu for wallpaer.
+      folderElem.addEventListener('contextmenu', noop);
       folderElem.classList.add('visible');
+      state = 'viewing';
     }, 0);
   }
 
   function hideUI() {
     Homescreen.setMode('normal');
-    headerElem.addEventListener('transitionend', function end(e) {
-      e.target.removeEventListener('transitionend', end);
+    headerElem.addEventListener('transitionend', function end2(e) {
+      e.target.removeEventListener('transitionend', end2);
       folderElem.style.display = 'none';
     });
     folderElem.classList.remove('visible');
     folderElem.removeEventListener('contextmenu', noop);
     closeElem.removeEventListener('click', hideUI);
-    window.removeEventListener('hashchange', hideUI);
+    window.removeEventListener('hashchange', homeButtonHandler);
     FolderManager.removeListener();
     state = 'none';
+  }
+
+  function homeButtonHandler() {
+    if (Homescreen.isInEditMode()) {
+      Homescreen.setMode('normal');
+    } else {
+      hideUI();
+    }
   }
 
   function _init() {
