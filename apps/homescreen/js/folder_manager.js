@@ -600,8 +600,72 @@ var FolderViewer = (function() {
       appsElem.appendChild(li[i]);
     }
     closeElem.addEventListener('click', hideUI);
+    titleElem.addEventListener('click', renameStart);
     window.addEventListener('hashchange', homeButtonHandler);
     showUI();
+  }
+
+  function renameStart() {
+      console.log('---> Rename start');
+      var currentTitle = titleElem.querySelector('span').textContent,
+          elInput, elDone;
+
+      folderElem.classList.add('editting_name');
+      titleElem.innerHTML = '<input type = "text" ' +
+                            'autocorrect="off" ' +
+                            'x-inputmode="verbatim" />' +
+                            '<b class="done"></b>';
+
+      elInput = titleElem.querySelector('input');
+      elDone = titleElem.querySelector('.done');
+
+      elInput.focus();
+      elInput.value = currentTitle;
+
+      elInput.addEventListener('blur', renameCancel);
+      elInput.addEventListener('keyup', onRenameKeyUp);
+      elDone.addEventListener('touchstart', renameSave);
+
+      titleElem.removeEventListener('click', renameStart);
+  }
+
+  function onRenameKeyUp(e) {
+    console.log('---> onRename KeyUp');
+    if (e.keyCode === 13) {
+      renameSave();
+    }
+  }
+
+  function renameSave(e) {
+    console.log('---> rename Save');
+    renameDone();
+  }
+  function renameCancel() {
+    console.log('---> rename Cancel');
+    renameDone();
+  }
+  function renameDone() {
+
+    var elInput = elTitle.querySelector('input'),
+        elDone = elTitle.querySelector('.done'),
+        id = currentSettings.id,
+        oldName = 'text',
+        newName = elInput.value,
+        nameChanged = newName && newName !== oldName;
+
+    console.log('---> rename Cancel');
+    elInput.removeEventListener('blur', renameCancel);
+    elInput.removeEventListener('keyup', onRenameKeyUp);
+    elDone.removeEventListener('touchstart', renameSave);
+
+    elInput.blur();
+
+
+    //save new name and update folder object with new data
+    //and update the folder icon on homescreen.
+    //
+    folderElem.classList.remove('editting_name');
+
   }
 
   function showUI() {
