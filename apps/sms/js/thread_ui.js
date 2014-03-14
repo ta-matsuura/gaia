@@ -702,10 +702,11 @@ var ThreadUI = global.ThreadUI = {
     // itself, which causes the keyboard to appear.
     Recipients.View.isFocusable = false;
 
+    // txm add "sms" for test
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/tel'
+        type: 'webcontacts/sms'
       }
     });
 

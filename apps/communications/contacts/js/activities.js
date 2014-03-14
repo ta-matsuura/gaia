@@ -49,6 +49,7 @@ var ActivityHandler = {
     document.location.hash = hash;
   },
   handle: function ah_handle(activity) {
+  console.log('---> ah_handle START');
 
     switch (activity.source.name) {
       case 'new':
@@ -72,6 +73,7 @@ var ActivityHandler = {
         break;
     }
     Contacts.checkCancelableActivity();
+    console.log('---> ah_handle END');
   },
 
   importContactsFromFile: function ah_importContactFromVcard(activity) {
@@ -97,6 +99,7 @@ var ActivityHandler = {
   },
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
+    console.log('--->dataPickHandler START');
     var type, dataSet, noDataStr;
 
     switch (this.activityDataType) {
@@ -166,6 +169,7 @@ var ActivityHandler = {
         }).bind(this);
         prompt1.show();
     } // switch
+    console.log('---> dataPickHandler END');
   },
 
   /*

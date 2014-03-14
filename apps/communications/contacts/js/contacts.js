@@ -25,6 +25,7 @@ var Contacts = (function() {
 
   var settingsReady = false;
   var detailsReady = false;
+  var pickselectReady = false;
   var formReady = false;
   var displayed = false;
 
@@ -33,6 +34,7 @@ var Contacts = (function() {
 
   var contactsList;
   var contactsDetails;
+  var contactsPickselect;
   var contactsForm;
 
   var customTag, customTagReset, tagDone, tagCancel, lazyLoadedTagsDom = false;
@@ -64,6 +66,7 @@ var Contacts = (function() {
           var id = params['id'];
           cList.getContactById(id, function onSuccess(savedContact) {
             currentContact = savedContact;
+            console.log('---> contactsDetails.render(currentContact, TAG_OPTIONS) call');
             contactsDetails.render(currentContact, TAG_OPTIONS);
             if (params['tel'])
               contactsDetails.reMark('tel', params['tel']);
@@ -279,16 +282,22 @@ var Contacts = (function() {
 
 
   var contactListClickHandler = function originalHandler(id) {
+    console.log('---> originalHandler START');
     initDetails(function onDetailsReady() {
       contactsList.getContactById(id, function findCb(contact, fbContact) {
         currentContact = contact;
         currentFbContact = fbContact;
         if (ActivityHandler.currentlyHandling) {
           if (ActivityHandler.activityName == 'pick') {
-            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
+            if (ActivityHandler.activityDataType == 'webcontacts/sms') {
+              contactsPickselect.render(currentContact, TAG_OPTIONS, currentFbContact || currentContact);
+            } else {
+              ActivityHandler.dataPickHandler(currentFbContact || currentContact);
+            }
           }
           return;
         }
+        console.log('---> contactsDetails.render() call');
         contactsDetails.render(currentContact, TAG_OPTIONS, currentFbContact);
         if (contacts.Search && contacts.Search.isInSearchMode()) {
           navigation.go('view-contact-details', 'go-deeper-search');
@@ -297,11 +306,13 @@ var Contacts = (function() {
         }
       });
     });
+    console.log('---> originalHandler END');
   };
 
   var updateContactDetail = function updateContactDetail(id) {
     contactsList.getContactById(id, function findCallback(contact) {
       currentContact = contact;
+        console.log('---> contactsDetails.render() call');
       contactsDetails.render(currentContact, TAG_OPTIONS);
     });
   };
@@ -552,6 +563,7 @@ var Contacts = (function() {
   };
 
   var initForm = function c_initForm(callback) {
+    console.log('---> c_initForm START');
     if (formReady) {
       callback();
     } else {
@@ -567,6 +579,7 @@ var Contacts = (function() {
         });
       });
     }
+    console.log('---> c_initForm END');
   };
 
   var initSettings = function c_initSettings(callback) {
@@ -585,17 +598,43 @@ var Contacts = (function() {
   };
 
   var initDetails = function c_initDetails(callback) {
+    console.log('---> c_initDetails START');
     if (detailsReady) {
       callback();
     } else {
-      Contacts.view('Details', function viewLoaded() {
-        detailsReady = true;
-        contactsDetails = contacts.Details;
-        contactsDetails.init();
+      initPickselect(function onPickselect() {
+        console.log('--->  onPickselect called ');
+        LazyLoader.load(['/contacts/js/utilities/image_thumbnail.js'],
+        function() {
+            console.log('-------> call view for Details ');
+            Contacts.view('Details', function viewLoaded() {
+            detailsReady = true;
+            contactsDetails = contacts.Details;
+            contactsDetails.init();
+            callback();
+          });
+        });
+      });
+    }
+    console.log('---> c_initDetails END');
+  };
+
+  var initPickselect = function c_initPickselect(callback) {
+    console.log('--->  c_initPickselect START');
+    if (pickselectReady) {
+      callback();
+    } else {
+      console.log('-------> call view for Pickselect ');
+      Contacts.view('Pickselect', function viewLoaded() {
+        pickselectReady = true;
+        contactsPickselect = contacts.Pickselect;
+        contactsPickselect.init();
         callback();
       });
     }
+    console.log('--->  c_initPickselect END');
   };
+
 
   var showForm = function c_showForm(edit, contact) {
     currentContact = contact || currentContact;
@@ -778,6 +817,7 @@ var Contacts = (function() {
   };
 
   var performOnContactChange = function performOnContactChange(event) {
+    console.log(' ---> performOnContactChange START');
     initContactsList();
     var currView = navigation.currentView();
     switch (event.reason) {
@@ -788,6 +828,7 @@ var Contacts = (function() {
             function success(contact, enrichedContact) {
               currentContact = contact;
               var mergedContact = enrichedContact || contact;
+              console.log('---> contactsDetails.setContact() call');
               contactsDetails.setContact(mergedContact);
               contactsDetails.render(mergedContact, null, enrichedContact);
               contactsList.refresh(mergedContact, checkPendingChanges,
@@ -813,6 +854,7 @@ var Contacts = (function() {
         checkPendingChanges(event.contactID);
         break;
     }
+    console.log(' ---> performOnContactChange END');
   };
 
   var close = function close() {
@@ -872,6 +914,7 @@ var Contacts = (function() {
   // E.g., #details-view, #list-view, #form-view
   var elementMapping = {
     details: 'view-contact-details',
+    pickselect: 'view-contact-details',
     form: 'view-contact-form',
     settings: 'settings-wrapper',
     search: 'search-view',
