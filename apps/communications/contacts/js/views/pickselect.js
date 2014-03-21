@@ -62,7 +62,7 @@ contacts.Pickselect = (function() {
     favoriteMessage = dom.querySelector('#toggle-favorite');
     notesTemplate = dom.querySelector('#note-details-template-\\#i\\#');
 
-    wrapper = dom.querySelector('#contact-detail-wrapper');
+    wrapper = dom.querySelector('#contact-pickselect-wrapper');
     initPullEffect(cover);
 
     utils.listeners.add({
@@ -159,6 +159,7 @@ contacts.Pickselect = (function() {
 
   var render = function cd_render(currentContact, tags, fbContactData) {
     console.log('---> cd_render START');
+    console.warn('render currentContact:' + currentContact + ', tags:' + tags + ', fbContactData:' + fbContactData);
     contactData = currentContact || contactData;
 
     TAG_OPTIONS = tags || TAG_OPTIONS;

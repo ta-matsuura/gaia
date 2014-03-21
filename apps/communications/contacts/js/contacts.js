@@ -48,6 +48,7 @@ var Contacts = (function() {
   }
 
   var checkUrl = function checkUrl() {
+    console.log('---> checkUrl START');
     var hasParams = window.location.hash.split('?');
     var hash = hasParams[0];
     var sectionId = hash.substr(1, hash.length) || '';
@@ -55,8 +56,12 @@ var Contacts = (function() {
     var params = hasParams.length > 1 ?
       utils.extractParams(hasParams[1]) : -1;
 
+    console.log('hasParams[0]: ' + hasParams[0]);
+    console.log('sectionId: ' + sectionId);
+
     switch (sectionId) {
       case 'view-contact-details':
+        console.log('---> case: view-contact-pickselect');
         initContactsList();
         initDetails(function onInitDetails() {
           if (params == -1 || !('id' in params)) {
@@ -70,6 +75,28 @@ var Contacts = (function() {
             contactsDetails.render(currentContact, TAG_OPTIONS);
             if (params['tel'])
               contactsDetails.reMark('tel', params['tel']);
+            navigation.go(sectionId, 'right-left');
+            showApp();
+          }, function onError() {
+            console.error('Error retrieving contact');
+          });
+        });
+        break;
+      case 'view-contact-pickselect':
+        console.log('---> case: view-contact-pickselect');
+        initContactsList();
+        initPickselect(function onPickselect() {
+          if (params == -1 || !('id' in params)) {
+            console.log('Param missing');
+            return;
+          }
+          var id = params['id'];
+          console.log('id : ' + id);;
+          cList.getContactById(id, function onSuccess(savedContact) {
+            currentContact = savedContact;
+            contactsPickselect.render(currentContact, TAG_OPTIONS);
+            if (params['tel'])
+              contactsPickselect.reMark('tel', params['tel']);
             navigation.go(sectionId, 'right-left');
             showApp();
           }, function onError() {
@@ -132,6 +159,7 @@ var Contacts = (function() {
       default:
         showApp();
     }
+    console.log('---> checkUrl END');
 
   };
 
@@ -239,6 +267,7 @@ var Contacts = (function() {
   };
 
   var initContactsList = function initContactsList() {
+    console.log('---> initContactsList START');
     if (contactsList)
       return;
     contactsList = contactsList || contacts.List;
@@ -248,6 +277,7 @@ var Contacts = (function() {
     contactsList.initAlphaScroll();
     contactsList.handleClick(contactListClickHandler);
     checkCancelableActivity();
+    console.log('---> initContactsList END');
   };
 
   var checkCancelableActivity = function cancelableActivity() {
@@ -283,29 +313,38 @@ var Contacts = (function() {
 
   var contactListClickHandler = function originalHandler(id) {
     console.log('---> originalHandler START');
-    initDetails(function onDetailsReady() {
-      contactsList.getContactById(id, function findCb(contact, fbContact) {
-        currentContact = contact;
-        currentFbContact = fbContact;
-        if (ActivityHandler.currentlyHandling) {
-          if (ActivityHandler.activityName == 'pick') {
-            if (ActivityHandler.activityDataType == 'webcontacts/sms') {
-              contactsPickselect.render(currentContact, TAG_OPTIONS, currentFbContact || currentContact);
-            } else {
+    if (ActivityHandler.currentlyHandling
+       && ActivityHandler.activityName == 'pick'
+       && ActivityHandler.activityDataType == 'webcontacts/sms') {
+      initPickselect(function onPickselect() {
+        contactsList.getContactById(id, function findCb(contact, fbContact) {
+          currentContact = contact;
+          currentFbContact = fbContact;
+          console.log('---> contactsPickselect.render() call');
+          contactsPickselect.render(currentContact, TAG_OPTIONS, currentFbContact);
+          navigation.go('view-contact-pickselect', 'go-deeper');
+        });
+      });
+    } else {
+      initDetails(function onDetailsReady() {
+        contactsList.getContactById(id, function findCb(contact, fbContact) {
+          currentContact = contact;
+          currentFbContact = fbContact;
+          if (ActivityHandler.currentlyHandling) {
+            if (ActivityHandler.activityName == 'pick') {
               ActivityHandler.dataPickHandler(currentFbContact || currentContact);
             }
+            return;
           }
-          return;
-        }
-        console.log('---> contactsDetails.render() call');
-        contactsDetails.render(currentContact, TAG_OPTIONS, currentFbContact);
-        if (contacts.Search && contacts.Search.isInSearchMode()) {
-          navigation.go('view-contact-details', 'go-deeper-search');
-        } else {
-          navigation.go('view-contact-details', 'go-deeper');
-        }
+          contactsDetails.render(currentContact, TAG_OPTIONS, currentFbContact);
+          if (contacts.Search && contacts.Search.isInSearchMode()) {
+            navigation.go('view-contact-details', 'go-deeper-search');
+          } else {
+            navigation.go('view-contact-details', 'go-deeper');
+          }
+        });
       });
-    });
+    }
     console.log('---> originalHandler END');
   };
 
@@ -914,7 +953,7 @@ var Contacts = (function() {
   // E.g., #details-view, #list-view, #form-view
   var elementMapping = {
     details: 'view-contact-details',
-    pickselect: 'view-contact-details',
+    pickselect: 'view-contact-pickselect',
     form: 'view-contact-form',
     settings: 'settings-wrapper',
     search: 'search-view',

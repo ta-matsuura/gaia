@@ -66,6 +66,7 @@ var ActivityHandler = {
           return;
         }
         this._currentActivity = activity;
+        console.log('---> _currentActivity :' + _currentActivity);
         Contacts.navigation.home();
         break;
       case 'import':

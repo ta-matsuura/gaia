@@ -70,15 +70,20 @@ function navigationStack(currentView) {
   };
 
   this.go = function go(nextView, transition) {
+    console.log('---> go START nextView: ' + nextView + 'transition: ' + transition);
     if (_currentView === nextView)
       return;
     var parent = window.parent;
     if (nextView == 'view-contact-form') {
+      console.log('---> go (1)');
       parent.postMessage({type: 'hide-navbar'}, COMMS_APP_ORIGIN);
     }
 
+    console.log('---> go (2)');
+
     // Remove items that match nextView from the stack to prevent duplicates.
     this.stack = this.stack.filter(function(item) {
+      console.log('---> go (3)');
       return item.view != nextView;
     });
 
@@ -87,6 +92,7 @@ function navigationStack(currentView) {
     // Performance is very bad when there are too many contacts so we use
     // -moz-element and animate this 'screenshot" element.
     if (transition.indexOf('go-deeper') === 0) {
+      console.log('---> go (4)');
       current = document.getElementById(screenshotViewId);
 
       // Load the screenshot dom content
@@ -95,14 +101,17 @@ function navigationStack(currentView) {
       current.style.zIndex = this.stack[this.stack.length - 1].zIndex;
       currentClassList = current.classList;
       if (transition.indexOf('search') !== -1) {
+        console.log('---> go (5)');
         currentClassList.add('search');
       } else {
+        console.log('---> go (6)');
         currentClassList.add('contact-list');
       }
       currentClassList.remove('hide');
     } else {
       current = document.getElementById(_currentView);
       currentClassList = current.classList;
+      console.log('---> go (7) current: ' + current + 'currentClassList: ' + currentClassList);
     }
 
     var forwardsClasses = this.transitions[transition].forwards;
@@ -112,11 +121,14 @@ function navigationStack(currentView) {
     currentClassList.add('block-item');
     if (forwardsClasses.current) {
       currentClassList.add(forwardsClasses.current);
+      console.log('---> go (8)');
     }
 
     var next = document.getElementById(nextView);
+    console.log('---> go (9) next: ' + next); 
     // Add forwards class to next view.
     if (forwardsClasses.next) {
+      console.log('---> go (10) '); 
       next.classList.add('block-item');
       next.classList.add(forwardsClasses.next);
       next.addEventListener('animationend', function ng_onNextBackwards(ev) {
@@ -130,6 +142,7 @@ function navigationStack(currentView) {
                       zIndex: zIndex});
     next.style.zIndex = zIndex;
     _currentView = nextView;
+    console.log('---> go END '); 
   };
 
   this.back = function back(callback) {
@@ -224,6 +237,7 @@ function navigationStack(currentView) {
   };
 
   this.home = function home(callback) {
+    console.log('---> home START callback: ' + callback);
     if (this.stack.length < 2) {
       if (typeof callback === 'function') {
         setTimeout(callback, 0);
@@ -232,8 +246,10 @@ function navigationStack(currentView) {
     }
 
     while (this.stack.length > 1) {
+      console.log('---> home while callback: ' + callback);
       this.back(callback);
     }
+    console.log('---> home END');
   };
 
   this.currentView = function currentView() {
