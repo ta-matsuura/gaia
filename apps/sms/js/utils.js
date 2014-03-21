@@ -467,6 +467,7 @@
     },
 
     basicContact: function(number, records, callback) {
+      console.log('---> basicContact START number : ' + number);
       var record;
       if (Array.isArray(records)) {
         if (records.length > 0) {
@@ -494,6 +495,7 @@
           break;
         }
       }
+      console.log('---> tel : ' + tel);
       // If after looking there is no tel. matching, we apply
       // directly the number
       if (!tel) {
@@ -503,6 +505,7 @@
       var details = Utils.getContactDetails(tel, record);
       var info = Utils.getDisplayObject(details.title || null, tel);
 
+      console.log('---> basicContact END');
       return info;
     },
 

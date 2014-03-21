@@ -29,6 +29,7 @@ var ActivityHandler = {
   },
 
   launch_activity: function ah_launch(activity, action) {
+    console.log('---> ah_launch START activity : ' + activity + ' action : ' + action);
     if (this._launchedAsInlineActivity) {
       return;
     }
@@ -47,6 +48,7 @@ var ActivityHandler = {
       hash += '?' + params.join('&');
     }
     document.location.hash = hash;
+    console.log('---> ah_launch END');
   },
   handle: function ah_handle(activity) {
   console.log('---> ah_handle START');
@@ -66,7 +68,7 @@ var ActivityHandler = {
           return;
         }
         this._currentActivity = activity;
-        console.log('---> _currentActivity :' + _currentActivity);
+        console.log('---> _currentActivity :' + this._currentActivity);
         Contacts.navigation.home();
         break;
       case 'import':
@@ -119,15 +121,19 @@ var ActivityHandler = {
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
         break;
+      case 'webcontacts/sms':
+        break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
+    console.log('--->hasData : ' + hasData + ' numOfData : ' + numOfData);
 
     var result = {};
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
         // If no required type of data
+        console.log('--------------------> case 0 ');
         var dismiss = {
           title: _('ok'),
           callback: function() {
@@ -137,6 +143,7 @@ var ActivityHandler = {
         Contacts.confirmDialog(null, noDataStr, dismiss);
         break;
       case 1:
+        console.log('--------------------> case 1 ');
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel') {
           result = utils.misc.toMozContact(theContact);
@@ -147,6 +154,7 @@ var ActivityHandler = {
         this.postPickSuccess(result);
         break;
       default:
+        console.log('--------------------> case default ');
         // if more than one required type of data
         var prompt1 = new ValueSelector();
         var data;
@@ -190,6 +198,7 @@ var ActivityHandler = {
   },
 
   postPickSuccess: function ah_postPickSuccess(result) {
+    console.log('---> postPickSuccess result : ' + result);
     this._currentActivity.postResult(result);
     this._currentActivity = null;
   },

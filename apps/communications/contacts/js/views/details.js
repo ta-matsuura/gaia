@@ -101,10 +101,13 @@ contacts.Details = (function() {
   };
 
   var initPullEffect = function cd_initPullEffect(cover) {
+    console.log('---> initPullEffect START');
     wrapper.addEventListener('touchstart', function(event) {
+      console.log('---> toushstart (1)');
 
       // Avoiding repaint (at least when no scroll is needed)
       if (cover.style.overflow == 'hidden') {
+        console.log('---> toushstart (2)');
         var headerHeight = 5;
         contactDetails.style.top = headerHeight + 'rem';
         contactDetails.style.position = 'fixed';
@@ -117,12 +120,15 @@ contacts.Details = (function() {
       var startPosition = event.clientY;
       contactDetails.classList.add('up');
       cover.classList.add('up');
+      console.log('---> toushstart (3)');
 
       var max_margin = Math.round(150 * SCALE_RATIO);
 
       var onMouseMove = function onMouseMove(event) {
         var event = event.changedTouches[0];
         var newMargin = event.clientY - startPosition;
+        console.log('MouseMove newMargin:' + newMargin + '  max_margin:' + max_margin);
+
         if (newMargin > 0 && newMargin < max_margin) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
@@ -130,11 +136,13 @@ contacts.Details = (function() {
           // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
           var newPos = (-photoPos + (newMargin / 40)) + 'rem';
+          console.log('calc :' + calc + '  newPos:' + newPos);
           cover.style.transform = 'translateY(' + newPos + ')';
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
+        console.log('---> onMouseUp START');
         var event = event.changedTouches[0];
         contactDetails.classList.add('up');
         cover.classList.add('up');
@@ -147,11 +155,15 @@ contacts.Details = (function() {
           contactDetails.style.top = '0';
           this.removeEventListener('transitionend', transEnd);
         });
+        console.log('---> onMouseUp END');
       };
 
+      console.log('---> addEventListener touchmove touchend');
       addEventListener('touchmove', onMouseMove);
       addEventListener('touchend', onMouseUp);
+      console.log('---> toushstart END');
     });
+    console.log('---> initPullEffect END');
   };
 
   var render = function cd_render(currentContact, tags, fbContactData) {

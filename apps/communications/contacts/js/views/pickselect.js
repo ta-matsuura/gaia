@@ -126,6 +126,7 @@ contacts.Pickselect = (function() {
       var onMouseMove = function onMouseMove(event) {
         var event = event.changedTouches[0];
         var newMargin = event.clientY - startPosition;
+        console.log('MouseMove newMargin:' + newMargin + '  max_margin:' + max_margin);
         if (newMargin > 0 && newMargin < max_margin) {
           contactDetails.classList.remove('up');
           cover.classList.remove('up');
@@ -133,11 +134,13 @@ contacts.Pickselect = (function() {
           // Divide by 40 (4 times slower and in rems)
           contactDetails.style.transform = 'translateY(' + calc + ')';
           var newPos = (-photoPos + (newMargin / 40)) + 'rem';
+          console.log('calc :' + calc + '  newPos:' + newPos);
           cover.style.transform = 'translateY(' + newPos + ')';
         }
       };
 
       var onMouseUp = function onMouseUp(event) {
+        console.log('onMouseMove');
         var event = event.changedTouches[0];
         contactDetails.classList.add('up');
         cover.classList.add('up');
@@ -167,7 +170,7 @@ contacts.Pickselect = (function() {
     isFbLinked = fb.isFbLinked(contactData);
 
     // Initially enabled and only disabled if necessary
-    editContactButton.removeAttribute('disabled');
+    //editContactButton.removeAttribute('disabled');
 
     if (!fbContactData && isFbContact) {
       var fbContact = new fb.Contact(contactData);
@@ -197,25 +200,26 @@ contacts.Pickselect = (function() {
     contactDetails.classList.remove('up');
     utils.dom.removeChildNodes(listContainer);
 
-    renderFavorite(contact);
-    renderOrg(contact);
+    //renderFavorite(contact);
+    //renderOrg(contact);
 
     renderPhones(contact);
     renderEmails(contact);
-    renderAddresses(contact);
+    //renderAddresses(contact);
 
-    renderDates(contact);
+    //renderDates(contact);
 
-    renderNotes(contact);
-    if (fb.isEnabled) {
-      renderSocial(contact);
-    }
+    //renderNotes(contact);
+    //if (fb.isEnabled) {
+    //  renderSocial(contact);
+    //}
 
-    if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
-      renderDuplicate(contact);
-    }
+    //if (!fb.isFbContact(contact) || fb.isFbLinked(contact)) {
+    //  renderDuplicate(contact);
+    //}
 
-    renderPhoto(contact);
+    //renderPhoto(contact);
+    resetPhoto();
   };
 
   var renderFavorite = function cd_renderFavorite(contact) {
@@ -423,13 +427,16 @@ contacts.Pickselect = (function() {
       var template = utils.templates.render(phonesTemplate, telField);
 
       // Add event listeners to the phone template components
-      var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
+      //var sendSmsButton = template.querySelector('#send-sms-button-' + tel);
+      //sendSmsButton.dataset['tel'] = telField.value;
+      //sendSmsButton.addEventListener('click', onSendSmsClicked);
+
+      //var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
+      //callOrPickButton.dataset['tel'] = telField.value;
+      //callOrPickButton.addEventListener('click', onCallOrPickClicked);
+      var sendSmsButton = template.querySelector('#call-or-pick-' + tel);
       sendSmsButton.dataset['tel'] = telField.value;
       sendSmsButton.addEventListener('click', onSendSmsClicked);
-
-      var callOrPickButton = template.querySelector('#call-or-pick-' + tel);
-      callOrPickButton.dataset['tel'] = telField.value;
-      callOrPickButton.addEventListener('click', onCallOrPickClicked);
 
       listContainer.appendChild(template);
     }
@@ -437,12 +444,27 @@ contacts.Pickselect = (function() {
 
   var onSendSmsClicked = function onSendSmsClicked(evt) {
     var tel = evt.target.dataset['tel'];
-    Contacts.sendSms(tel);
+    console.log('---> onSendSmsClicked tel : ' + tel);
+    var result = {};
+    result.name = '';
+    result['number'] = tel;
+    ActivityHandler.dataPickHandler(result);
+    //Contacts.sendSms(tel);
+  };
+
+  var onSendMmsClicked = function onSendMmsClicked(evt) {
+    var email = evt.target.dataset['email'];
+    console.log('---> onSendMmsClicked email : ' + email);
+    var result = {};
+    result.name = '';
+    result['email'] = email;
+    ActivityHandler.dataPickHandler(result);
+    //Contacts.sendSms(email);
   };
 
   var onCallOrPickClicked = function onCallOrPickClicked(evt) {
     var tel = evt.target.dataset['tel'];
-    Contacts.callOrPick(tel);
+    //Contacts.callOrPick(tel);
   };
 
   var renderEmails = function cd_renderEmails(contact) {
@@ -464,18 +486,18 @@ contacts.Pickselect = (function() {
       // Add event listeners to the phone template components
       var emailButton = template.querySelector('#email-or-pick-' + email);
       emailButton.dataset['email'] = emailField.value;
-      emailButton.addEventListener('click', onEmailOrPickClick);
+      emailButton.addEventListener('click', onSendMmsClicked);
 
       listContainer.appendChild(template);
     }
   };
 
-  var onEmailOrPickClick = function onEmailOrPickClick(evt) {
-    evt.preventDefault();
-    var email = evt.target.dataset['email'];
-    Contacts.sendEmailOrPick(email);
-    return false;
-  };
+  //var onEmailOrPickClick = function onEmailOrPickClick(evt) {
+  //  evt.preventDefault();
+  //  var email = evt.target.dataset['email'];
+  //  Contacts.sendEmailOrPick(email);
+  //  return false;
+  //};
 
   var renderAddresses = function cd_renderAddresses(contact) {
     if (!contact.adr) {
