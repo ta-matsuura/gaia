@@ -710,6 +710,7 @@ var ThreadUI = global.ThreadUI = {
     });
 
     activity.onsuccess = (function() {
+    console.log('--->activity.onsuccess!!');
       if (!activity.result ||
           !activity.result.tel ||
           !activity.result.tel.length ||

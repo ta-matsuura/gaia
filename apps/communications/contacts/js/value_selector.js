@@ -62,12 +62,18 @@ function ValueSelector(list) {
   }
 
   this.show = function() {
+    console.log('-------------');
+    console.log(el.outerHTML);
+    console.log('-------------');
     render();
 
     el.classList.add('visible');
 
     // And now focus it to force the system to pop up the options
     select.focus();
+    console.log('222222--------------------');
+    console.log(el.outerHTML);
+    console.log('222222--------------------');
   };
 
   this.hide = function() {

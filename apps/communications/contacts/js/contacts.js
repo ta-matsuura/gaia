@@ -285,6 +285,8 @@ var Contacts = (function() {
         currentFbContact = fbContact;
         if (ActivityHandler.currentlyHandling) {
           if (ActivityHandler.activityName == 'pick') {
+            console.log('--->currentFbContact : ' + currentFbContact);
+            console.log('--->currentContact : ' + currentContact);
             ActivityHandler.dataPickHandler(currentFbContact || currentContact);
           }
           return;

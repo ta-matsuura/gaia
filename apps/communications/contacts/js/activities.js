@@ -97,20 +97,24 @@ var ActivityHandler = {
   },
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
-    var type, dataSet, noDataStr;
+    var type, dataSet, noDataStr, dataSet2;
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
+        console.log('case tel');
         type = 'contact';
         dataSet = theContact.tel;
+        dataSet2 = theContact.email;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/contact':
+        console.log('case contact');
         type = 'number';
         dataSet = theContact.tel;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/email':
+        console.log('case email');
         type = 'email';
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
@@ -123,6 +127,7 @@ var ActivityHandler = {
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
+        console.log('---> case 0');
         // If no required type of data
         var dismiss = {
           title: _('ok'),
@@ -133,6 +138,7 @@ var ActivityHandler = {
         Contacts.confirmDialog(null, noDataStr, dismiss);
         break;
       case 1:
+        console.log('---> case 1');
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel') {
           result = utils.misc.toMozContact(theContact);
@@ -143,16 +149,25 @@ var ActivityHandler = {
         this.postPickSuccess(result);
         break;
       default:
+        console.log('---> case default');
         // if more than one required type of data
         var prompt1 = new ValueSelector();
         var data;
         for (var i = 0; i < dataSet.length; i++) {
           data = dataSet[i].value;
+          console.log('---> data :' + data);
           var carrier = dataSet[i].carrier || '';
+          prompt1.addToList(data + ' ' + carrier, data);
+        }
+        for (var i = 0; i < dataSet2.length; i++) {
+          data = dataSet2[i].value;
+          console.log('---> data :' + data);
+          var carrier = dataSet2[i].carrier || '';
           prompt1.addToList(data + ' ' + carrier, data);
         }
 
         prompt1.onchange = (function onchange(itemData) {
+          console.log('---> case onchange itemData:' + itemData);
           if (this.activityDataType == 'webcontacts/tel') {
             // filter phone from data.tel to take out the rest
             result = utils.misc.toMozContact(theContact);
@@ -162,6 +177,7 @@ var ActivityHandler = {
             result[type] = itemData;
           }
           prompt1.hide();
+          console.log('---> call postPickSuccess');
           this.postPickSuccess(result);
         }).bind(this);
         prompt1.show();
@@ -175,6 +191,7 @@ var ActivityHandler = {
   filterPhoneNumberForActivity:
   function ah_filterPhoneNumberForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
+      console.log('---> item.value : ' + item.value);
       return item.value == itemData;
     });
   },
