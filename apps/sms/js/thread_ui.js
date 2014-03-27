@@ -705,7 +705,7 @@ var ThreadUI = global.ThreadUI = {
     var activity = new MozActivity({
       name: 'pick',
       data: {
-        type: 'webcontacts/tel'
+        type: 'webcontacts/msg'
       }
     });
 

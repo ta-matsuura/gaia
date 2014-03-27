@@ -104,7 +104,6 @@ var ActivityHandler = {
         console.log('case tel');
         type = 'contact';
         dataSet = theContact.tel;
-        dataSet2 = theContact.email;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/contact':
@@ -117,6 +116,13 @@ var ActivityHandler = {
         console.log('case email');
         type = 'email';
         dataSet = theContact.email;
+        noDataStr = _('no_contact_email');
+        break;
+      case 'webcontacts/msg':
+        console.log('case msg');
+        type = 'msg';
+        dataSet = theContact.tel;
+        dataSet.push(theContact.email);
         noDataStr = _('no_contact_email');
         break;
     }
@@ -150,20 +156,23 @@ var ActivityHandler = {
         break;
       default:
         console.log('---> case default');
+        //TODO use L10
+        var selectorTitle = 'Recipent Select';
         // if more than one required type of data
-        var prompt1 = new ValueSelector();
+        var prompt1 = new ValueSelector(selectorTitle);
         var data;
         for (var i = 0; i < dataSet.length; i++) {
           data = dataSet[i].value;
-          console.log('---> data :' + data);
           var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data);
-        }
-        for (var i = 0; i < dataSet2.length; i++) {
-          data = dataSet2[i].value;
-          console.log('---> data :' + data);
-          var carrier = dataSet2[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data);
+          prompt1.addToList(data + ' ' + carrier, data, null, 
+                            function() {
+                              console.log('---> callback1');
+                              return function() {
+                                console.log('---> callback1');
+                                prompt1.hide();
+                              }
+                            }
+          );
         }
 
         prompt1.onchange = (function onchange(itemData) {

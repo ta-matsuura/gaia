@@ -1,109 +1,191 @@
 /*
+!! Warning !!
+  This value selector is modified for email folder selection only.
+  API and layout are changed because of the sub-folder indentation display.
+  Please reference the original version selector in contact app before using.
+
 How to:
-  var prompt1 = new ValueSelector([
+  var prompt1 = new ValueSelector('Dummy title 1', [
     {
       label: 'Dummy element',
+      callback: function() {
+        alert('Define an action here!');
+      }
     }
   ]);
 
-  prompt1.addToList('Another button');
-  prompt1.onchange =  function() {alert('Another action');}
+  prompt1.addToList('Another button', 'depth0',
+                    true, function(){alert('Another action');});
   prompt1.show();
 */
+/*jshint browser: true */
+/*global alert, define */
+/*
+define(function(require) {
+console.log('---> define function(require)');
 
-function ValueSelector(list) {
-  var data, el, select;
-  var self = this;
+var FOLDER_DEPTH_CLASSES = require('folder_depth_classes'),
+    mozL10n = require('l10n!');
+*/
+// Used for empty click handlers.
+function noop() {}
 
-  function init() {
-    var strPopup, body, section;
+function ValueSelector(title, list) {
+  console.log('---> ValueSelector title : ' + title + '   list : ' + list);
+  var init, show, hide, render, setTitle, emptyList, addToList,
+      data, el;
+
+  init = function() {
+    console.log('---> init START');
+    var strPopup, body, section, btnCancel, cancelStr;
 
     // Model. By having dummy data in the model,
     // it make it easier for othe developers to catch up to speed
     data = {
+      title: 'No Title',
       list: [
         {
-          label: 'Dummy element'
+          label: 'Dummy element',
+          callback: function() {
+            alert('Define an action here!');
+          }
         }
       ]
     };
 
     body = document.body;
-    el = body.querySelector('section.valueselector');
-    if (el === null) {
-      el = document.createElement('section');
-      el.className = 'valueselector';
-      strPopup = '<form>';
-      strPopup += '  <select name="selector_name">';
-      strPopup += '    <option>Dummy element</option>';
-      strPopup += '  </select>';
-      strPopup += '</form>';
+    //cancelStr = mozL10n.get('message-multiedit-cancel');
+    cancelStr = 'Cancel';
 
-      el.innerHTML += strPopup;
-      body.appendChild(el);
-    }
+    el = document.createElement('section');
+    el.setAttribute('class', 'valueselector');
+    el.setAttribute('role', 'region');
 
-    select = el.querySelector('select');
-    select.addEventListener('change', function() {
-      if (typeof self.onchange === 'function') {
-        window.setTimeout(function handle_onchange() {
-          // Wait a few milisecs to give feedback to the user
-          self.onchange(select.value);
-        }, 200);
-      }
+    strPopup = '<div role="dialog">';
+    strPopup += '  <div class="center">';
+    strPopup += '    <h3>No Title</h3>';
+    strPopup += '    <ul>';
+    strPopup += '      <li>';
+    strPopup += '        <label class="pack-radio">';
+    strPopup += '          <input type="radio" name="option">';
+    strPopup += '          <span>Dummy element</span>';
+    strPopup += '        </label>';
+    strPopup += '      </li>';
+    strPopup += '    </ul>';
+    strPopup += '  </div>';
+    strPopup += '  <menu>';
+    strPopup += '    <button>' + cancelStr + '</button>';
+    strPopup += '  </menu>';
+    strPopup += '</div>';
+
+    el.innerHTML += strPopup;
+    body.appendChild(el);
+
+    btnCancel = el.querySelector('button');
+    btnCancel.addEventListener('click', function() {
+      hide();
     });
 
     // Empty dummy data
     emptyList();
 
+    // Apply optional actions while initializing
+    if (typeof title === 'string') {
+      setTitle(title);
+    }
+
     if (Array.isArray(list)) {
       data.list = list;
     }
-  }
+    console.log('---> init END');
+  };
 
-  this.show = function() {
-    console.log('-------------');
-    console.log(el.outerHTML);
-    console.log('-------------');
+  show = function() {
+    console.log('---> show START');
     render();
-
     el.classList.add('visible');
-
-    // And now focus it to force the system to pop up the options
-    select.focus();
-    console.log('222222--------------------');
-    console.log(el.outerHTML);
-    console.log('222222--------------------');
   };
 
-  this.hide = function() {
-    // Avoid consuming resources
+  hide = function() {
+    console.log('---> hide START');
     el.classList.remove('visible');
+    emptyList();
   };
 
-  function render() {
-    select.innerHTML = '';
-    select.value = '';
-    var totalOptions = data.list.length;
+  render = function() {
+    var title = el.querySelector('h3'),
+        list = el.querySelector('ul');
 
-    select.setAttribute('size', totalOptions);
+    title.textContent = data.title;
 
-    for (var i = 0; i < totalOptions; i++) {
-      var option = new Option(data.list[i].label, data.list[i].value);
-      select.add(option);
+    list.innerHTML = '';
+    for (var i = 0; i < data.list.length; i++) {
+      var li = document.createElement('li'),
+          label = document.createElement('label'),
+          input = document.createElement('input'),
+          span = document.createElement('span'),
+          text = document.createTextNode(data.list[i].label);
+
+      input.setAttribute('type', 'radio');
+      input.setAttribute('name', 'option');
+      label.classList.add('pack-radio');
+      label.appendChild(input);
+      span.appendChild(text);
+      label.appendChild(span);
+      // Here we apply the folder-card's depth indentation to represent label.
+      /*var depthIdx = data.list[i].depth;
+      depthIdx = Math.min(FOLDER_DEPTH_CLASSES.length - 1, depthIdx);
+      label.classList.add(FOLDER_DEPTH_CLASSES[depthIdx]);
+*/
+
+      // If not selectable use an empty click handler. Because of event
+      // fuzzing, we want to have something registered, otherwise an
+      // adjacent list item may receive the click.
+      //var callback = data.list[i].selectable ? data.list[i].callback : noop;
+      var callback = data.list[i].callback;
+      li.addEventListener('click', callback, false);
+
+      li.appendChild(label);
+      list.appendChild(li);
     }
-  }
+  };
 
-  function emptyList() {
+  setTitle = function(str) {
+    data.title = str;
+  };
+
+  emptyList = function() {
     data.list = [];
-  }
+  };
 
-  this.addToList = function(label, value) {
+  /*addToList = function(label, depth, selectable, callback) {
     data.list.push({
       label: label,
-      value: value
+      depth: depth,
+      selectable: selectable,
+      callback: callback
+    });
+  };*/
+  addToList = function(label, callback) {
+    data.list.push({
+      label: label,
+      callback: callback
     });
   };
 
   init();
+
+  return{
+    init: init,
+    show: show,
+    hide: hide,
+    setTitle: setTitle,
+    addToList: addToList,
+    List: list
+  };
 }
+
+//console.log('---> return ValueSelector');
+//return ValueSelector;
+
+//});
