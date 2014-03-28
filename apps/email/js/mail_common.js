@@ -571,16 +571,20 @@ Cards = {
         var folders = foldersSlice.items;
         for (var i = 0; i < folders.length; i++) {
           var folder = folders[i];
+          console.log(' ---> call addToList() ');
           self.folderPrompt.addToList(folder.name, folder.depth,
             folder.selectable,
             function(folder) {
+              console.log(' ---> callback1');
               return function() {
+                console.log(' ---> callback2');
                 self.folderPrompt.hide();
                 callback(folder);
               };
             }(folder));
 
         }
+        console.log(' ---> call Prompt show!!!');
         self.folderPrompt.show();
       });
     });

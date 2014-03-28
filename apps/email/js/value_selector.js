@@ -133,6 +133,7 @@ function ValueSelector(title, list) {
       // fuzzing, we want to have something registered, otherwise an
       // adjacent list item may receive the click.
       var callback = data.list[i].selectable ? data.list[i].callback : noop;
+      console.log('---> addEventListener callback1');
       li.addEventListener('click', callback, false);
 
       li.appendChild(label);

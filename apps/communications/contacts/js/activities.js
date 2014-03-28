@@ -97,7 +97,8 @@ var ActivityHandler = {
   },
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
-    var type, dataSet, noDataStr, dataSet2;
+    var type, dataSet, noDataStr;
+    var contact = [];
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
@@ -121,8 +122,9 @@ var ActivityHandler = {
       case 'webcontacts/msg':
         console.log('case msg');
         type = 'msg';
-        dataSet = theContact.tel;
-        dataSet.push(theContact.email);
+        contact = copyTelEmail(contact, theContacts.tel); 
+        copyTelEmail(contact, theContacts.tel); 
+        Array.prototype.push.apply(dataSet, theContact.email);
         noDataStr = _('no_contact_email');
         break;
     }
@@ -146,7 +148,8 @@ var ActivityHandler = {
       case 1:
         console.log('---> case 1');
         // if one required type of data
-        if (this.activityDataType == 'webcontacts/tel') {
+        if (this.activityDataType == 'webcontacts/tel' 
+         || this.activityDataType == 'webcontacts/msg') {
           result = utils.misc.toMozContact(theContact);
         } else {
           result[type] = dataSet[0].value;
@@ -155,6 +158,7 @@ var ActivityHandler = {
         this.postPickSuccess(result);
         break;
       default:
+        var self = this;
         console.log('---> case default');
         //TODO use L10
         var selectorTitle = 'Recipent Select';
@@ -164,34 +168,35 @@ var ActivityHandler = {
         for (var i = 0; i < dataSet.length; i++) {
           data = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data, null, 
-                            function() {
-                              console.log('---> callback1');
-                              return function() {
-                                console.log('---> callback1');
-                                prompt1.hide();
-                              }
-                            }
-          );
+          prompt1.addToList(data + ' ' + carrier, data, 
+          function(data) {
+            console.log('---> callback1');
+            return function() {
+              console.log('---> callback2 data : ' + data);
+              result = utils.misc.toMozContact(theContact);
+              result.sval = self.filterPhoneNumberForActivity(data, result.tel);
+              if (!result.sval) 
+                result.sval = self.filterEmailAddrForActivity(data, result.email);
+              prompt1.hide();
+              self.postPickSuccess(result);
+            };
+          }(data));
         }
-
-        prompt1.onchange = (function onchange(itemData) {
-          console.log('---> case onchange itemData:' + itemData);
-          if (this.activityDataType == 'webcontacts/tel') {
-            // filter phone from data.tel to take out the rest
-            result = utils.misc.toMozContact(theContact);
-            result.tel =
-              this.filterPhoneNumberForActivity(itemData, result.tel);
-          } else {
-            result[type] = itemData;
-          }
-          prompt1.hide();
-          console.log('---> call postPickSuccess');
-          this.postPickSuccess(result);
-        }).bind(this);
         prompt1.show();
     } // switch
   },
+
+  copyTelEmail: function ah_copyTelEmail(arr, data) {
+    let alen = arr.length, dlen = data.length;
+    for (var i = 0; i < dlen ; i++ {
+      if(dlen =< alen) { arr[alen] = data[i] }; 
+      else { arr[alen] = data[i]; }
+      alen++;
+    }
+    
+    return arr;
+  }
+
 
   /*
    * We only need to return the phone number that user chose from the select
@@ -200,7 +205,15 @@ var ActivityHandler = {
   filterPhoneNumberForActivity:
   function ah_filterPhoneNumberForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
-      console.log('---> item.value : ' + item.value);
+      console.log('---> Phone for Activity item.value : ' + item.value);
+      return item.value == itemData;
+    });
+  },
+
+  filterEmailAddrForActivity:
+  function ah_filterEmailAddrForActivity(itemData, dataSet) {
+    return dataSet.filter(function isSameEmail(item) {
+      console.log('---> Email for Activity item.value : ' + item.value);
       return item.value == itemData;
     });
   },

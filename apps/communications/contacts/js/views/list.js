@@ -1320,7 +1320,6 @@ contacts.List = (function() {
 
   var callbacks = [];
   var handleClick = function handleClick(callback) {
-    console.log('handleClick callback: ' + callback);
     callbacks.push(callback);
   };
 
@@ -1329,7 +1328,6 @@ contacts.List = (function() {
   };
 
   function onClickHandler(evt) {
-    console.log('--->onClickHandler');
     var target = evt.target;
     var dataset = target.dataset || {};
     var parentDataset = target.parentNode ?

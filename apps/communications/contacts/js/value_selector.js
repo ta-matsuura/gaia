@@ -54,6 +54,7 @@ function ValueSelector(title, list) {
     };
 
     body = document.body;
+    //TODO user L10!!
     //cancelStr = mozL10n.get('message-multiedit-cancel');
     cancelStr = 'Cancel';
 
@@ -143,7 +144,9 @@ function ValueSelector(title, list) {
       // adjacent list item may receive the click.
       //var callback = data.list[i].selectable ? data.list[i].callback : noop;
       var callback = data.list[i].callback;
-      li.addEventListener('click', callback, false);
+      if(callback) {
+        li.addEventListener('click', callback, false);
+      }
 
       li.appendChild(label);
       list.appendChild(li);
@@ -166,9 +169,10 @@ function ValueSelector(title, list) {
       callback: callback
     });
   };*/
-  addToList = function(label, callback) {
+  addToList = function(label, value, callback) {
     data.list.push({
       label: label,
+      value: value,
       callback: callback
     });
   };
