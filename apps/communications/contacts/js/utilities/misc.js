@@ -5,8 +5,10 @@ var utils = window.utils || {};
 if (!utils.misc) {
   utils.misc = {};
   utils.misc.toMozContact = function ut_toMozContact(contact) {
+    console.log('---> ut_toMozContact START');
     var outContact = contact;
     if (!(contact instanceof mozContact)) {
+      console.log('---> contact is not mozContact, so new mozContact');
       outContact = new mozContact(contact);
       outContact.id = contact.id || outContact.id;
     }

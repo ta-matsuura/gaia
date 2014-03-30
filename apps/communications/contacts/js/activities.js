@@ -3,6 +3,12 @@
 
 'use strict';
 
+var Result = function() {
+  this.name;
+  this.tel = [];
+  this.sval = [];
+};
+
 var ActivityHandler = {
   _currentActivity: null,
 
@@ -98,6 +104,7 @@ var ActivityHandler = {
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
     var type, dataSet, noDataStr;
+    var result = new Result();
     var contact = [];
 
     switch (this.activityDataType) {
@@ -122,16 +129,19 @@ var ActivityHandler = {
       case 'webcontacts/msg':
         console.log('case msg');
         type = 'msg';
-        contact = copyTelEmail(contact, theContacts.tel); 
-        copyTelEmail(contact, theContacts.tel); 
-        Array.prototype.push.apply(dataSet, theContact.email);
-        noDataStr = _('no_contact_email');
+        if (theContact.tel) {
+          dataSet = this.copyTelEmail(contact, theContact.tel);
+        }
+        if (theContact.email) {
+          dataSet = this.copyTelEmail(contact, theContact.email);
+        }
+        noDataStr = _('no_contact_data');
         break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
 
-    var result = {};
+    //var result = {};
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
@@ -148,8 +158,8 @@ var ActivityHandler = {
       case 1:
         console.log('---> case 1');
         // if one required type of data
-        if (this.activityDataType == 'webcontacts/tel' 
-         || this.activityDataType == 'webcontacts/msg') {
+        if (this.activityDataType == 'webcontacts/tel' ||
+            this.activityDataType == 'webcontacts/msg') {
           result = utils.misc.toMozContact(theContact);
         } else {
           result[type] = dataSet[0].value;
@@ -168,15 +178,18 @@ var ActivityHandler = {
         for (var i = 0; i < dataSet.length; i++) {
           data = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data, 
+          prompt1.addToList(data + ' ' + carrier, data,
           function(data) {
             console.log('---> callback1');
             return function() {
               console.log('---> callback2 data : ' + data);
-              result = utils.misc.toMozContact(theContact);
+              //result = utils.misc.toMozContact(theContact);
+              result.tel = theContact.tel;
+              result.email = theContact.email;
               result.sval = self.filterPhoneNumberForActivity(data, result.tel);
-              if (!result.sval) 
-                result.sval = self.filterEmailAddrForActivity(data, result.email);
+              if (result.sval.length == 0)
+                result.sval =
+                  self.filterEmailAddrForActivity(data, result.email);
               prompt1.hide();
               self.postPickSuccess(result);
             };
@@ -186,16 +199,17 @@ var ActivityHandler = {
     } // switch
   },
 
+
   copyTelEmail: function ah_copyTelEmail(arr, data) {
-    let alen = arr.length, dlen = data.length;
-    for (var i = 0; i < dlen ; i++ {
-      if(dlen =< alen) { arr[alen] = data[i] }; 
+    var alen = arr.length;
+    var dlen = data.length;
+    for (var i = 0; i < dlen; i++) {
+      if (dlen === alen) { arr[alen] = data[i]; }
       else { arr[alen] = data[i]; }
       alen++;
     }
-    
     return arr;
-  }
+  },
 
 
   /*
