@@ -718,6 +718,15 @@ var ThreadUI = global.ThreadUI = {
         console.error('The pick activity result is invalid.');
         return;
       }
+      if (activity.result.tel) {
+         console.log('---> tel: ' + activity.result.tel[0].value);
+      }
+      if (activity.result.email) {
+        console.log('---> email: ' + activity.result.email[0].value);
+      }
+      if (activity.result.sval) {
+        console.log('---> sval: ' + activity.result.sval[0].value);
+      }
 
       Recipients.View.isFocusable = true;
 
@@ -2147,7 +2156,7 @@ var ThreadUI = global.ThreadUI = {
         subject: Compose.getSubject(),
         messageType: Compose.type,
         recipients: recipients,
-        serviceId: serviceId,
+        serviceId: serviceId
       });
     }.bind(this);
 
