@@ -710,28 +710,18 @@ var ThreadUI = global.ThreadUI = {
     });
 
     activity.onsuccess = (function() {
-    console.log('--->activity.onsuccess!!');
       if (!activity.result ||
-          !activity.result.tel ||
-          !activity.result.tel.length ||
-          !activity.result.tel[0].value) {
+          !activity.result.select ||
+          !activity.result.select.length ||
+          !activity.result.select[0].value) { 
         console.error('The pick activity result is invalid.');
         return;
-      }
-      if (activity.result.tel) {
-         console.log('---> tel: ' + activity.result.tel[0].value);
-      }
-      if (activity.result.email) {
-        console.log('---> email: ' + activity.result.email[0].value);
-      }
-      if (activity.result.sval) {
-        console.log('---> sval: ' + activity.result.sval[0].value);
       }
 
       Recipients.View.isFocusable = true;
 
       var data = Utils.basicContact(
-        activity.result.tel[0].value, activity.result
+        activity.result.select[0].value, activity.result.contact
       );
       data.source = 'contacts';
 

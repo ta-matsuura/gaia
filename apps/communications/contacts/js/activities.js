@@ -5,8 +5,8 @@
 
 var Result = function() {
   this.name;
-  this.tel = [];
-  this.sval = [];
+  this.contact = {};
+  this.select = [];
 };
 
 var ActivityHandler = {
@@ -109,25 +109,21 @@ var ActivityHandler = {
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
-        console.log('case tel');
         type = 'contact';
         dataSet = theContact.tel;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/contact':
-        console.log('case contact');
         type = 'number';
         dataSet = theContact.tel;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/email':
-        console.log('case email');
         type = 'email';
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
         break;
       case 'webcontacts/msg':
-        console.log('case msg');
         type = 'msg';
         if (theContact.tel) {
           dataSet = this.copyTelEmail(contact, theContact.tel);
@@ -141,11 +137,9 @@ var ActivityHandler = {
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
 
-    //var result = {};
     result.name = theContact.name;
     switch (numOfData) {
       case 0:
-        console.log('---> case 0');
         // If no required type of data
         var dismiss = {
           title: _('ok'),
@@ -156,22 +150,22 @@ var ActivityHandler = {
         Contacts.confirmDialog(null, noDataStr, dismiss);
         break;
       case 1:
-        console.log('---> case 1');
         // if one required type of data
         if (this.activityDataType == 'webcontacts/tel' ||
             this.activityDataType == 'webcontacts/msg') {
-          result = utils.misc.toMozContact(theContact);
+          result.contact = utils.misc.toMozContact(theContact);
+          result.select = result.contact.tel;
+          if (!result.select || !result.select.length) {
+            result.select = result.contact.email;
+          }
         } else {
           result[type] = dataSet[0].value;
         }
-
         this.postPickSuccess(result);
         break;
       default:
         var self = this;
-        console.log('---> case default');
-        //TODO use L10
-        var selectorTitle = 'Recipent Select';
+        var selectorTitle = _('select_recipient');
         // if more than one required type of data
         var prompt1 = new ValueSelector(selectorTitle);
         var data;
@@ -180,16 +174,12 @@ var ActivityHandler = {
           var carrier = dataSet[i].carrier || '';
           prompt1.addToList(data + ' ' + carrier, data,
           function(data) {
-            console.log('---> callback1');
             return function() {
-              console.log('---> callback2 data : ' + data);
-              //result = utils.misc.toMozContact(theContact);
-              result.tel = theContact.tel;
-              result.email = theContact.email;
-              result.sval = self.filterPhoneNumberForActivity(data, result.tel);
-              if (result.sval.length == 0)
-                result.sval =
-                  self.filterEmailAddrForActivity(data, result.email);
+              result.contact = utils.misc.toMozContact(theContact);
+              result.select = self.filterPhoneNumberForActivity(data, result.contact.tel);
+              if (result.select.length == 0)
+                result.select =
+                  self.filterEmailAddrForActivity(data, result.contact.email);
               prompt1.hide();
               self.postPickSuccess(result);
             };
@@ -219,7 +209,6 @@ var ActivityHandler = {
   filterPhoneNumberForActivity:
   function ah_filterPhoneNumberForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
-      console.log('---> Phone for Activity item.value : ' + item.value);
       return item.value == itemData;
     });
   },
@@ -227,7 +216,6 @@ var ActivityHandler = {
   filterEmailAddrForActivity:
   function ah_filterEmailAddrForActivity(itemData, dataSet) {
     return dataSet.filter(function isSameEmail(item) {
-      console.log('---> Email for Activity item.value : ' + item.value);
       return item.value == itemData;
     });
   },

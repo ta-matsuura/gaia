@@ -260,7 +260,6 @@
    * @return {Recipients} return the recipients list.
    */
   Recipients.prototype.add = function(entry) {
-    console.log('Recipients.prototype.add() START');
     var list = data.get(this);
     var added;
     /*
@@ -300,7 +299,6 @@
     // Render the view
     this.render();
 
-    console.log('Recipients.prototype.add() END');
     return this;
   };
 

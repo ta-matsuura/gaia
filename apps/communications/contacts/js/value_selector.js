@@ -54,9 +54,7 @@ function ValueSelector(title, list) {
     };
 
     body = document.body;
-    //TODO user L10!!
-    //cancelStr = mozL10n.get('message-multiedit-cancel');
-    cancelStr = 'Cancel';
+    cancelStr = _('cancel');
 
     el = document.createElement('section');
     el.setAttribute('class', 'valueselector');

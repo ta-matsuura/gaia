@@ -80,14 +80,12 @@
     // Please remember to revoke the photoURL after utilizing it.
     getContactDetails:
       function ut_getContactDetails(number, contacts, include) {
-      console.log(' ---> ut_getContactDetails START'); 
 
       var details = {};
 
       include = include || {};
 
       function updateDetails(contact) {
-        console.log(' ---> updateDetails START'); 
         var name, phone, carrier, i, length, subscriber, org;
         name = contact.name[0];
         org = contact.org && contact.org[0];
@@ -146,9 +144,7 @@
         if (phone.type) {
           details.carrier = phone.type + ' | ' + details.carrier;
         }
-        console.log(' ---> updateDetails END'); 
       }
-      console.log(' ---> ut_getContactDetails (1)'); 
 
       // In no contact or contact with empty information cases, we will leave
       // the title as the empty string and let caller to decide the title.
@@ -172,7 +168,6 @@
         details.title = details.name || details.org;
       }
 
-      console.log(' ---> ut_getContactDetails END'); 
       return details;
     },
 
@@ -472,7 +467,6 @@
     },
 
     basicContact: function(number, records, callback) {
-      console.log(' ---> basicContact number : ' + number + ' records : ' + records + ' callback :' + callback);
       var record;
       if (Array.isArray(records)) {
         if (records.length > 0) {
@@ -491,18 +485,15 @@
       }
 
       var telLength = (record && record.tel) ? record.tel.length : 0;
-      console.log(' ---> telLength : ' + telLength); 
       var tel;
       // Look for the right tel. A record can contains more than
       // one record, so we need to identify which one is the right one.
       for (var i = 0; i < telLength; i++) {
-        console.log(' ---> record.tel.value' + i + ' :: ' + record.tel[i].value); 
         if (record.tel[i].value === number) {
           tel = record.tel[i];
           break;
         }
       }
-      console.log(' ---> record.tel.value' + i + ' :: ' + record.tel[i].value); 
       // If after looking there is no tel. matching, we apply
       // directly the number
       if (!tel) {
@@ -512,7 +503,6 @@
       var details = Utils.getContactDetails(tel, record);
       var info = Utils.getDisplayObject(details.title || null, tel);
 
-      console.log(' ---> basicContact END'); 
       return info;
     },
 
@@ -522,7 +512,6 @@
       all the information needed to display data.
     */
     getDisplayObject: function(theTitle, tel) {
-      console.log(' ---> getDisplayObject START'); 
       var number = tel.value;
       var title = theTitle || number;
       var type = tel.type && tel.type.length ? tel.type[0] : '';
@@ -538,7 +527,6 @@
         numberHTML: ''
       };
 
-      console.log(' ---> getDisplayObject END'); 
       return data;
     },
 
