@@ -104,7 +104,8 @@ var ActivityHandler = {
 
   dataPickHandler: function ah_dataPickHandler(theContact) {
     var type, dataSet, noDataStr;
-    var result = new Result();
+    //var result = new Result();
+    var result = {};
     var contact = [];
 
     switch (this.activityDataType) {
@@ -125,12 +126,13 @@ var ActivityHandler = {
         break;
       case 'webcontacts/msg':
         type = 'msg';
-        if (theContact.tel) {
-          dataSet = this.copyTelEmail(contact, theContact.tel);
-        }
-        if (theContact.email) {
-          dataSet = this.copyTelEmail(contact, theContact.email);
-        }
+        var data = [];
+        if(theContact.tel && theContact.tel.length)
+          data = data.concat(theContact.tel);
+        if(theContact.email && theContact.email.length)
+          data = data.concat(theContact.email);
+
+        dataSet = data;
         noDataStr = _('no_contact_data');
         break;
     }
@@ -176,10 +178,10 @@ var ActivityHandler = {
           function(data) {
             return function() {
               result.contact = utils.misc.toMozContact(theContact);
-              result.select = self.filterPhoneNumberForActivity(data, result.contact.tel);
-              if (result.select.length == 0)
-                result.select =
-                  self.filterEmailAddrForActivity(data, result.contact.email);
+              result.select = self.filterAddressForActivity(data, result.contact.tel); 
+              if( !result.select || !result.select.length) {
+                result.select = self.filterAddressForActivity(data, result.contact.email);
+              }
               prompt1.hide();
               self.postPickSuccess(result);
             };
@@ -189,33 +191,13 @@ var ActivityHandler = {
     } // switch
   },
 
-
-  copyTelEmail: function ah_copyTelEmail(arr, data) {
-    var alen = arr.length;
-    var dlen = data.length;
-    for (var i = 0; i < dlen; i++) {
-      if (dlen === alen) { arr[alen] = data[i]; }
-      else { arr[alen] = data[i]; }
-      alen++;
-    }
-    return arr;
-  },
-
-
   /*
    * We only need to return the phone number that user chose from the select
    * Hence we filter out the rest of the phones from the contact
    */
-  filterPhoneNumberForActivity:
+  filterAddressForActivity:
   function ah_filterPhoneNumberForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
-      return item.value == itemData;
-    });
-  },
-
-  filterEmailAddrForActivity:
-  function ah_filterEmailAddrForActivity(itemData, dataSet) {
-    return dataSet.filter(function isSameEmail(item) {
       return item.value == itemData;
     });
   },
