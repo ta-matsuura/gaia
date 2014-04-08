@@ -125,7 +125,7 @@ var ActivityHandler = {
         noDataStr = _('no_contact_email');
         break;
       case 'webcontacts/select':
-        type = 'msg';
+        type = 'select';
         var data = [];
         if(theContact.tel && theContact.tel.length)
           data = data.concat(theContact.tel);
@@ -153,16 +153,20 @@ var ActivityHandler = {
         break;
       case 1:
         // if one required type of data
-        if (this.activityDataType == 'webcontacts/tel' ||
-            this.activityDataType == 'webcontacts/select') {
+        if (this.activityDataType == 'webcontacts/tel') {
+          result = utils.misc.toMozContact(theContact);
+        }
+        else if (this.activityDataType == 'webcontacts/select') {
           result.contact = utils.misc.toMozContact(theContact);
           result.select = result.contact.tel;
           if (!result.select || !result.select.length) {
             result.select = result.contact.email;
           }
-        } else {
+        } 
+        else {
           result[type] = dataSet[0].value;
         }
+
         this.postPickSuccess(result);
         break;
       default:
@@ -170,33 +174,43 @@ var ActivityHandler = {
         var selectorTitle = _('select_recipient');
         // if more than one required type of data
         var prompt1 = new ValueSelector(selectorTitle);
-        var data;
+        var itemData;
         for (var i = 0; i < dataSet.length; i++) {
-          data = dataSet[i].value;
+          itemData = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(data + ' ' + carrier, data,
-          function(data) {
-            return function() {
-              result.contact = utils.misc.toMozContact(theContact);
-              result.select = self.filterAddressForActivity(data, result.contact.tel); 
-              if( !result.select || !result.select.length) {
-                result.select = self.filterAddressForActivity(data, result.contact.email);
+          prompt1.addToList(itemData + ' ' + carrier, itemData,
+          function(itemData) {
+            return prompt1.select = function() {
+              if (self.activityDataType == 'webcontacts/select') {
+                result.contact = utils.misc.toMozContact(theContact);
+                result.select = self.filterAddressForActivity(itemData, result.contact.tel); 
+                if( !result.select || !result.select.length) {
+                  result.select = self.filterAddressForActivity(itemData, result.contact.email);
+                }
+              }
+              else if (self.activityDataType == 'webcontacts/tel') {
+                  // filter phone from data.tel to take out the rest
+                  result = utils.misc.toMozContact(theContact);
+                  result.tel = self.filterAddressForActivity(itemData, result.tel);
+              } 
+              else {
+                result[type] = itemData;
               }
               prompt1.hide();
               self.postPickSuccess(result);
             };
-          }(data));
+          }(itemData));
         }
         prompt1.show();
     } // switch
   },
 
   /*
-   * We only need to return the phone number that user chose from the select
-   * Hence we filter out the rest of the phones from the contact
+   * 
+   * 
    */
   filterAddressForActivity:
-  function ah_filterPhoneNumberForActivity(itemData, dataSet) {
+  function ah_filterAddressForActivity(itemData, dataSet) {
     return dataSet.filter(function isSamePhone(item) {
       return item.value == itemData;
     });
