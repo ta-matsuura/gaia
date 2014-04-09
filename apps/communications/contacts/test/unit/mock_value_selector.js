@@ -7,10 +7,10 @@ function ValueSelector() {
       list: []
     },
     show: function() {
-     /* call callback() immediately 
-      * when prompt showed. 
+     /* call callback() immediately
+      * when prompt showed.
       * Able to select any data you want.
-      * ex) list[1].callback means that 
+      * ex) list[1].callback means that
       * user select second value. */
      this.data.list[0].callback();
     },

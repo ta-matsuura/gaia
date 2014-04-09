@@ -1,3 +1,5 @@
+/* globals _ */
+/* exported ValueSelector */
 /*
 How to:
   var prompt1 = new ValueSelector('Dummy title 1', [
@@ -21,7 +23,7 @@ function ValueSelector(title, list) {
       data, el;
 
   init = function() {
-    var strPopup, body, section, btnCancel, cancelStr;
+    var strPopup, body, btnCancel, cancelStr;
 
     // Model. By having dummy data in the model,
     // it make it easier for othe developers to catch up to speed
@@ -106,6 +108,7 @@ function ValueSelector(title, list) {
           span = document.createElement('span'),
           text = document.createTextNode(data.list[i].label);
 
+      li.id = 'item' + i;
       input.setAttribute('type', 'radio');
       input.setAttribute('name', 'option');
       label.classList.add('pack-radio');
