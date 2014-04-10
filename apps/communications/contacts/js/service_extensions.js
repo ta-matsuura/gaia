@@ -198,7 +198,6 @@ if (typeof Contacts.extServices === 'undefined') {
       var mozContReq = fb.utils.getMozContact(uid);
 
       mozContReq.onsuccess = function() {
-        console.log('mozContReq.onsuccess');
         // contactId is the device contact about to be linked
         var fbContact = new fb.Contact(null, contactId);
 

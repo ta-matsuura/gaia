@@ -718,7 +718,7 @@ var ThreadUI = global.ThreadUI = {
       if (!activity.result ||
           !activity.result.select ||
           !activity.result.select.length ||
-          !activity.result.select[0].value) { 
+          !activity.result.select[0].value) {
         console.error('The pick activity result is invalid.');
         return;
       }
