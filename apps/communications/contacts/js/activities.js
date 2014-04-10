@@ -121,7 +121,8 @@ var ActivityHandler = {
         var data = [];
         if (theContact.tel && theContact.tel.length) {
           data = data.concat(theContact.tel);
-        } else if (theContact.email && theContact.email.length) {
+        }
+        if (theContact.email && theContact.email.length) {
           data = data.concat(theContact.email);
         }
 
@@ -166,43 +167,42 @@ var ActivityHandler = {
         var selectorTitle = _('select_recipient');
         // if more than one required type of data
         var prompt1 = new ValueSelector(selectorTitle);
-        var itemData;
+        var itemData, self = this;
+        var capture = function(itemData) {
+          return function() {
+            if (self.activityDataType == 'webcontacts/select') {
+              result.contact = utils.misc.toMozContact(theContact);
+              result.select = self.filterAddressForActivity(
+                                itemData, result.contact.tel);
+              if (!result.select || !result.select.length) {
+                result.select = self.filterAddressForActivity(
+                                itemData, result.contact.email);
+              }
+            }
+            else if (self.activityDataType == 'webcontacts/tel') {
+                // filter phone from data.tel to take out the rest
+                result = utils.misc.toMozContact(theContact);
+                result.tel = self.filterAddressForActivity(
+                               itemData, result.tel);
+            }
+            else {
+              result[type] = itemData;
+            }
+            prompt1.hide();
+            self.postPickSuccess(result);
+          };
+        };
+
         for (var i = 0; i < dataSet.length; i++) {
           itemData = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
           prompt1.addToList(itemData + ' ' + carrier, itemData,
-              this.capture(result, type, prompt1, theContact, itemData));
+              capture(itemData));
         }
         prompt1.show();
     } // switch
   },
 
-
-  capture: function capture(result, type, prompt1, theContact, itemData) {
-    var self = this;
-    return function() {
-      if (self.activityDataType == 'webcontacts/select') {
-        result.contact = utils.misc.toMozContact(theContact);
-        result.select = self.filterAddressForActivity(
-                          itemData, result.contact.tel);
-        if (!result.select || !result.select.length) {
-          result.select = self.filterAddressForActivity(
-                          itemData, result.contact.email);
-        }
-      }
-      else if (self.activityDataType == 'webcontacts/tel') {
-          // filter phone from data.tel to take out the rest
-          result = utils.misc.toMozContact(theContact);
-          result.tel = self.filterAddressForActivity(
-                         itemData, result.tel);
-      }
-      else {
-        result[type] = itemData;
-      }
-      prompt1.hide();
-      self.postPickSuccess(result);
-    };
-  },
 
   filterAddressForActivity:
   function ah_filterAddressForActivity(itemData, dataSet) {
