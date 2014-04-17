@@ -46,6 +46,7 @@ var Contacts = (function() {
   var settingsReady = false;
   var detailsReady = false;
   var formReady = false;
+  var valueselectorReady = false;
   var displayed = false;
 
   var currentContact = {},
@@ -314,7 +315,11 @@ var Contacts = (function() {
         currentFbContact = fbContact;
         if (ActivityHandler.currentlyHandling) {
           if (ActivityHandler.activityName == 'pick') {
-            ActivityHandler.dataPickHandler(currentFbContact || currentContact);
+            console.log('call initValueSelector');
+            initValueSelector(function onValueSelectorReady() {
+              ActivityHandler.dataPickHandler(
+                currentFbContact || currentContact);
+            });
           }
           return;
         }
@@ -559,6 +564,7 @@ var Contacts = (function() {
       initDetails(function onDetails() {
         LazyLoader.load(['/contacts/js/utilities/image_thumbnail.js'],
         function() {
+          console.log('c_initSettings call Contacts.view()');
           Contacts.view('Form', function viewLoaded() {
             formReady = true;
             contactsForm = contacts.Form;
@@ -574,6 +580,7 @@ var Contacts = (function() {
     if (settingsReady) {
       callback();
     } else {
+      console.log('c_initSettings call Contacts.view()');
       Contacts.view('Settings', function viewLoaded() {
         LazyLoader.load(['/contacts/js/utilities/sim_dom_generator.js',
           '/contacts/js/utilities/icc_handler.js'], function() {
@@ -589,6 +596,7 @@ var Contacts = (function() {
     if (detailsReady) {
       callback();
     } else {
+      console.log('c_initSettings call Contacts.view()');
       Contacts.view('Details', function viewLoaded() {
         var simPickerNode = document.getElementById('sim-picker');
         LazyLoader.load([simPickerNode], function() {
@@ -600,6 +608,19 @@ var Contacts = (function() {
         });
       });
     }
+  };
+
+  var initValueSelector = function c_initValueSelector(callback) {
+    if (valueselectorReady) {
+      callback();
+    } else {
+        console.log('call Contacts.view()');
+        Contacts.view('value_selector', function viewLoaded() {
+          valueselectorReady = true;
+          contacts.ValueSelector.init();
+          callback();
+        });
+      }
   };
 
   var showForm = function c_showForm(edit, contact) {
@@ -893,6 +914,8 @@ var Contacts = (function() {
   };
 
   function load(type, file, callback, path) {
+    console.log('load  ---  type : ' +
+        type + ' file : ' + file + ' path : ' + path);
     /**
      * Performs the actual lazy loading
      * Called once all dependencies are met
@@ -900,6 +923,7 @@ var Contacts = (function() {
     function doLoad() {
       var name = file.toLowerCase();
       var finalPath = 'js' + '/' + type;
+      console.log('load --- name : ' + name + 'finalPath : ' + finalPath);
 
       switch (path) {
         case SHARED:
@@ -920,6 +944,7 @@ var Contacts = (function() {
 
       LazyLoader.load(toLoad, function() {
           if (node) {
+            console.log('load --- node : ' + node);
             navigator.mozL10n.translate(node);
           }
           if (callback) {

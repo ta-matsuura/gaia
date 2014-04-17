@@ -1,4 +1,5 @@
-/* globals _, ConfirmDialog, Contacts, LazyLoader, utils, ValueSelector */
+/* globals _, ConfirmDialog, Contacts, LazyLoader, utils */
+/* globals contacts */
 /* exported ActivityHandler */
 
 'use strict';
@@ -116,19 +117,6 @@ var ActivityHandler = {
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
         break;
-      case 'webcontacts/select':
-        type = 'select';
-        var data = [];
-        if (theContact.tel && theContact.tel.length) {
-          data = data.concat(theContact.tel);
-        }
-        if (theContact.email && theContact.email.length) {
-          data = data.concat(theContact.email);
-        }
-
-        dataSet = data;
-        noDataStr = _('no_contact_data');
-        break;
     }
     var hasData = dataSet && dataSet.length;
     var numOfData = hasData ? dataSet.length : 0;
@@ -150,13 +138,6 @@ var ActivityHandler = {
         if (this.activityDataType == 'webcontacts/tel') {
           result = utils.misc.toMozContact(theContact);
         }
-        else if (this.activityDataType == 'webcontacts/select') {
-          result.contact = utils.misc.toMozContact(theContact);
-          result.select = result.contact.tel;
-          if (!result.select || !result.select.length) {
-            result.select = result.contact.email;
-          }
-        }
         else {
           result[type] = dataSet[0].value;
         }
@@ -164,22 +145,11 @@ var ActivityHandler = {
         this.postPickSuccess(result);
         break;
       default:
-        var selectorTitle = _('select_recipient');
         // if more than one required type of data
-        var prompt1 = new ValueSelector(selectorTitle);
         var itemData, self = this;
         var capture = function(itemData) {
           return function() {
-            if (self.activityDataType == 'webcontacts/select') {
-              result.contact = utils.misc.toMozContact(theContact);
-              result.select = self.filterAddressForActivity(
-                                itemData, result.contact.tel);
-              if (!result.select || !result.select.length) {
-                result.select = self.filterAddressForActivity(
-                                itemData, result.contact.email);
-              }
-            }
-            else if (self.activityDataType == 'webcontacts/tel') {
+            if (self.activityDataType == 'webcontacts/tel') {
                 // filter phone from data.tel to take out the rest
                 result = utils.misc.toMozContact(theContact);
                 result.tel = self.filterAddressForActivity(
@@ -188,7 +158,7 @@ var ActivityHandler = {
             else {
               result[type] = itemData;
             }
-            prompt1.hide();
+            contacts.ValueSelector.hide();
             self.postPickSuccess(result);
           };
         };
@@ -196,10 +166,10 @@ var ActivityHandler = {
         for (var i = 0; i < dataSet.length; i++) {
           itemData = dataSet[i].value;
           var carrier = dataSet[i].carrier || '';
-          prompt1.addToList(itemData + ' ' + carrier, itemData,
+          contacts.ValueSelector.addToList(itemData + ' ' + carrier, itemData,
               capture(itemData));
         }
-        prompt1.show();
+        contacts.ValueSelector.show();
     } // switch
   },
 

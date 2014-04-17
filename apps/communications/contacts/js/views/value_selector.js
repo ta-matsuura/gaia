@@ -1,5 +1,6 @@
+'use strict';
 /* globals _ */
-/* exported ValueSelector */
+
 /*
 How to:
   var prompt1 = new ValueSelector('Dummy title 1', [
@@ -16,13 +17,15 @@ How to:
   prompt1.show();
 */
 
-'use strict';
 
-function ValueSelector(title, list) {
-  var init, show, hide, render, setTitle, emptyList, addToList,
-      data, el;
+var contacts = window.contacts || {};
 
-  init = function() {
+contacts.ValueSelector = (function(title, list) {
+  var data,
+      el;
+
+  var init = function vs_init() {
+    console.log(' ValueSelector init!!');
     var strPopup, body, btnCancel, cancelStr;
 
     // Model. By having dummy data in the model,
@@ -84,17 +87,17 @@ function ValueSelector(title, list) {
     }
   };
 
-  show = function() {
+  var show = function vs_show() {
     render();
     el.classList.add('visible');
   };
 
-  hide = function() {
+  var hide = function vs_hide() {
     el.classList.remove('visible');
     emptyList();
   };
 
-  render = function() {
+  var render = function vs_render() {
     var title = el.querySelector('h3'),
         list = el.querySelector('ul');
 
@@ -126,15 +129,15 @@ function ValueSelector(title, list) {
     }
   };
 
-  setTitle = function(str) {
+  var setTitle = function vs_setTitle(str) {
     data.title = str;
   };
 
-  emptyList = function() {
+  var emptyList = function emptyList() {
     data.list = [];
   };
 
-  addToList = function(label, value, callback) {
+  var addToList = function addToList(label, value, callback) {
     data.list.push({
       label: label,
       value: value,
@@ -142,14 +145,14 @@ function ValueSelector(title, list) {
     });
   };
 
-  init();
+  //init();
 
   return{
-    init: init,
-    show: show,
-    hide: hide,
-    setTitle: setTitle,
-    addToList: addToList,
-    List: list
+    'init': init,
+    'show': show,
+    'hide': hide,
+    'setTitle': setTitle,
+    'addToList': addToList,
+    'List': list
   };
-}
+})();
