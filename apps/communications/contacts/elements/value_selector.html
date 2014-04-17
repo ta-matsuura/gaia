@@ -1,27 +1,24 @@
 <element name="view-contact-valueselector" extends="section">
   <template>
-    <article id="contact-detail-wrapper" class="view-body">
-      <section id="contact-valueselector" class="valueselector visible" role="region">
-        <div role="dialog">
-          <div role="center">
-            <h2 data-l10n-id="#type_l10n_id#">#type#</h2>
-              <ul class="item-data">
-                <li></li>
-              </ul>
-          </div>
-          <menu>
-            <button id="cancel-button"> </button>
-          </menu>
-        </div>
+    <article id="contact-valueselector-wrapper" class="view-body">
+      <section id="contact-valueselector" class="view-body-inner ">
+
+        <li id='item#i#' data-template>
+          <label id='label' class="pack-radio">
+            <input type="radio" name="option"></input>
+             <span> #value# </span>
+          </label>
+        </li>
+
+        <h3 id='org-title'> #title# </h3>
+
         <div id='contact-detail-inner'>
-          <h1 id='org-title'></h1>
-           <ul id='details-list'>
-           </ul>
-          <ul>
-          <li>
-          <button id='toggle-favorite' class="fillflow-row icon icon-fav">
-            Add as favorite </button> </li> </ul> 
-      </div>
+          <ul id='itemdata-list'>
+          </ul>
+        </div>
+        <menu>
+          <button data-l10n-id="#type_l10n_id#">cancel #type#</button>
+        </menu>
       </section>
     </article>
   </template>
