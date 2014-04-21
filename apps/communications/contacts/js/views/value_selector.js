@@ -1,136 +1,76 @@
 'use strict';
-/* globals _ */
-
-/*
-How to:
-  var prompt1 = new ValueSelector('Dummy title 1', [
-    {
-      label: 'Dummy element',
-      callback: function() {
-        alert('Define an action here!');
-      }
-    }
-  ]);
-
-  prompt1.addToList('Another button', 'depth0',
-                    true, function(){alert('Another action');});
-  prompt1.show();
-*/
-
-
 var contacts = window.contacts || {};
 
-contacts.ValueSelector = (function(title, list) {
+contacts.ValueSelector = (function() {
   var data,
-      el;
+      dom,
+      contactValueSelector,
+      itemTemplate,
+      listContainer,
+      btnCancel;
 
-  var init = function vs_init() {
-    console.log(' ValueSelector init!!');
-    var strPopup, body, btnCancel, cancelStr;
+  var init = function vs_init(currentDom) {
+    dom = currentDom || document;
+    contactValueSelector = dom.querySelector('#contact-valueselector');
+    itemTemplate = dom.querySelector('#itemdata-template-\\#i\\#');
+    listContainer = dom.querySelector('#itemdata-list');
 
-    // Model. By having dummy data in the model,
-    // it make it easier for othe developers to catch up to speed
+    btnCancel = dom.querySelector('#cancel-select-button');
+    btnCancel.addEventListener('click', function() {
+      hide();
+    });
+
     data = {
       title: 'No Title',
       list: [
         {
           label: 'Dummy element',
           callback: function() {
-            alert('Define an action here!');
+            //nothig to do
           }
         }
       ]
     };
 
-    body = document.body;
-    cancelStr = _('cancel');
-
-    el = document.createElement('section');
-    el.setAttribute('class', 'valueselector');
-    el.setAttribute('role', 'region');
-
-    strPopup = '<div role="dialog">';
-    strPopup += '  <div class="center">';
-    strPopup += '    <h3>No Title</h3>';
-    strPopup += '    <ul>';
-    strPopup += '      <li>';
-    strPopup += '        <label class="pack-radio">';
-    strPopup += '          <input type="radio" name="option">';
-    strPopup += '          <span>Dummy element</span>';
-    strPopup += '        </label>';
-    strPopup += '      </li>';
-    strPopup += '    </ul>';
-    strPopup += '  </div>';
-    strPopup += '  <menu>';
-    strPopup += '    <button>' + cancelStr + '</button>';
-    strPopup += '  </menu>';
-    strPopup += '</div>';
-
-    el.innerHTML += strPopup;
-    body.appendChild(el);
-
-    btnCancel = el.querySelector('button');
-    btnCancel.addEventListener('click', function() {
-      hide();
-    });
-
     // Empty dummy data
     emptyList();
-
-    // Apply optional actions while initializing
-    if (typeof title === 'string') {
-      setTitle(title);
-    }
-
-    if (Array.isArray(list)) {
-      data.list = list;
-    }
   };
 
   var show = function vs_show() {
     render();
-    el.classList.add('visible');
+    itemTemplate.style.display = 'none';
+    contactValueSelector.classList.add('visible');
   };
 
   var hide = function vs_hide() {
-    el.classList.remove('visible');
+    itemTemplate.style.display = 'block';
+    contactValueSelector.classList.remove('visible');
     emptyList();
+    for (var i = listContainer.childNodes.length - 1; i >= 0; i--) {
+      console.log('child' + listContainer.childNodes[i].outerHTML);
+      listContainer.removeChild(listContainer.childNodes[i]);
+    }
+    console.log('contactValueSelector' + contactValueSelector.outerHTML);
   };
 
   var render = function vs_render() {
-    var title = el.querySelector('h3'),
-        list = el.querySelector('ul');
 
-    title.textContent = data.title;
-
-    list.innerHTML = '';
     for (var i = 0; i < data.list.length; i++) {
-      var li = document.createElement('li'),
-          label = document.createElement('label'),
-          input = document.createElement('input'),
-          span = document.createElement('span'),
-          text = document.createTextNode(data.list[i].label);
+      var itemField = {
+        label: data.list[i].label,
+        i: i
+      };
 
-      li.id = 'item' + i;
-      input.setAttribute('type', 'radio');
-      input.setAttribute('name', 'option');
-      label.classList.add('pack-radio');
-      label.appendChild(input);
-      span.appendChild(text);
-      label.appendChild(span);
+      var template = utils.templates.render(itemTemplate, itemField);
 
+      // Set callback function on each li element.
       var callback = data.list[i].callback;
       if (callback) {
-        li.addEventListener('click', callback, false);
+        template.addEventListener('click', callback, false);
       }
-
-      li.appendChild(label);
-      list.appendChild(li);
+      listContainer.appendChild(template);
     }
-  };
-
-  var setTitle = function vs_setTitle(str) {
-    data.title = str;
+    console.log(' listContainer : ' + listContainer.outerHTML);
   };
 
   var emptyList = function emptyList() {
@@ -145,14 +85,10 @@ contacts.ValueSelector = (function(title, list) {
     });
   };
 
-  //init();
-
   return{
     'init': init,
     'show': show,
     'hide': hide,
-    'setTitle': setTitle,
-    'addToList': addToList,
-    'List': list
+    'addToList': addToList
   };
 })();
