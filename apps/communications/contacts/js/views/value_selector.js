@@ -48,10 +48,8 @@ contacts.ValueSelector = (function() {
     contactValueSelector.classList.remove('visible');
     emptyList();
     for (var i = listContainer.childNodes.length - 1; i >= 0; i--) {
-      console.log('child' + listContainer.childNodes[i].outerHTML);
       listContainer.removeChild(listContainer.childNodes[i]);
     }
-    console.log('contactValueSelector' + contactValueSelector.outerHTML);
   };
 
   var render = function vs_render() {
@@ -71,7 +69,6 @@ contacts.ValueSelector = (function() {
       }
       listContainer.appendChild(template);
     }
-    console.log(' listContainer : ' + listContainer.outerHTML);
   };
 
   var emptyList = function emptyList() {
