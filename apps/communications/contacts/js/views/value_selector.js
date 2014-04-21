@@ -1,3 +1,4 @@
+/* global utils */
 'use strict';
 var contacts = window.contacts || {};
 
