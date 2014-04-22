@@ -1,7 +1,9 @@
 'use strict';
 /* exported ValueSelector */
+var contacts = window.contacts || {};
 
-function ValueSelector() {
+contacts.ValueSelector = (function() {
+
   return {
     data: {
       list: []
@@ -23,4 +25,5 @@ function ValueSelector() {
       });
     }
   };
-}
+})();
+
