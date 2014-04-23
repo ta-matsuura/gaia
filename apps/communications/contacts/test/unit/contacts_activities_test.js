@@ -245,8 +245,12 @@ suite('Test Activities', function() {
     test('webcontacts/contact, 1 result', function() {
       activity.source.data.type = 'webcontacts/contact';
       ActivityHandler._currentActivity = activity;
+      contact.tel.pop();
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
+      //console.log(JSON.stringify(contact.tel[0]));
+      //console.log(JSON.stringify(result));
+      //console.log(JSON.stringify(result.number));
       assert.equal(result.number, contact.tel[0].value);
     });
 
@@ -255,8 +259,15 @@ suite('Test Activities', function() {
       ActivityHandler._currentActivity = activity;
       ActivityHandler.dataPickHandler(contact);
       assert.isFalse(ConfirmDialog.showing);
+      console.log('START webcontacts/contact many results - --------- ');
+      //console.log('length : ' + contact.tel.length);
+      //console.log('itemData : ' + contact.tel[0].value);
+      //console.log('itemData : ' + contact.tel[1].value);
+      //console.log(JSON.stringify(result.number));
+      //console.log(JSON.stringify(result.number));
       // Mock returns always the first option from the select
       assert.equal(result.number, contact.tel[0].value);
+      console.log('END webcontacts/contact many results - --------- ');
     });
 
     test('webcontacts/email, 0 results', function() {

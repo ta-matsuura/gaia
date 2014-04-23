@@ -103,16 +103,19 @@ var ActivityHandler = {
 
     switch (this.activityDataType) {
       case 'webcontacts/tel':
+        console.log(' thui---tel');
         type = 'contact';
         dataSet = theContact.tel;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/contact':
+        console.log(' thui---contacts');
         type = 'number';
         dataSet = theContact.tel;
         noDataStr = _('no_contact_phones');
         break;
       case 'webcontacts/email':
+        console.log(' thui---email');
         type = 'email';
         dataSet = theContact.email;
         noDataStr = _('no_contact_email');
