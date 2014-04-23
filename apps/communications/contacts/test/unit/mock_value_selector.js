@@ -4,6 +4,7 @@ var contacts = window.contacts || {};
 
 contacts.ValueSelector = (function() {
 
+
   return {
     data: {
       list: []
@@ -16,7 +17,9 @@ contacts.ValueSelector = (function() {
       * user select second value. */
      this.data.list[0].callback();
     },
-    hide: function() {},
+    hide: function() {
+            this.data.list = [];
+          },
     addToList: function(label, value, callback) {
       this.data.list.push({
         'type': [label],
