@@ -24,6 +24,7 @@
         resolve();
         return;
       }
+      console.log('--- 2');
 
       if (readyState === 'initializing') {
         document.addEventListener('ds-initialized', function oninitalized() {
@@ -32,6 +33,7 @@
         });
         return;
       }
+      console.log('--- 3');
 
       readyState = 'initializing';
 
@@ -42,7 +44,7 @@
         return;
       }
 
-      console.log('call getDataStores');
+      console.log('--- 4');
       navigator.getDataStores(DATASTORE_NAME).then(function(ds) {
         console.log('then ....');
         if (ds.length < 1) {
@@ -72,9 +74,10 @@
       switch (task.operation) {
         case 'update':
         case 'add':
-          console.log('update or add id:' + task.id + ' data : ' + task.data);
+          console.log('update or add id:' + task.id);
+          console.log('data : ' + Object.keys(task.data));
           result[task.data.id] = task.data;
-          console.log('result[task.data.id]' + result[task.data.id]);
+          console.log('result[task.data.id] : ' + result[task.data.id]);
           console.log('Object.keys(result) : ' + Object.keys(result));
           break;
 
@@ -92,8 +95,6 @@
           console.log('done');
           console.log('operation : ' + task.operation);
           console.log('task.id : ' + task.id);
-          console.log('task.data : ' + task.data);
-          console.log('task.data.id : ' + task.data.id);
           resolve(result);
           return;
       }
@@ -116,8 +117,9 @@
   }
 
   function getAll() {
-    console.log('getAll');
+    console.log('START');
     return new Promise(function doGet(resolve, reject) {
+      console.log('call init()');
       init().then(doGetAll.bind(null, resolve, reject), reject);
     });
   }

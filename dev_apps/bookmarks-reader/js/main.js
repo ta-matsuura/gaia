@@ -55,6 +55,7 @@
   });
 
   // Populate list
+  console.log(' BookmarksDatabase.getAll()');
   BookmarksDatabase.getAll().then(function(bookmarks) {
     // We are going to iterate over system bookmarks
     Object.keys(bookmarks).forEach(function(id) {

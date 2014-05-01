@@ -993,12 +993,13 @@ var GridManager = (function() {
   }
 
   function mergeBookmarks(done) {
+    console.log('call ------> BookmarksDatabase.getAll()');
     BookmarksDatabase.getAll().then(function(systemBookmarks) {
       console.log('Promise no resolve ??:');
       // We are going to iterate over system bookmarks
       Object.keys(systemBookmarks).forEach(function(id) {
-        console.log('mergeBookmarks systemBookmarks:' + systemBookmarks);
-        console.log('mergeBookmarks id:' + id);
+        console.log('systemBookmarks:' + systemBookmarks);
+        console.log('id:' + id);
         if (bookmarksById[id]) {
           // Deleting from the list because it should not be removed from grid
           delete bookmarksById[id];
