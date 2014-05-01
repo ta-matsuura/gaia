@@ -9,7 +9,9 @@ var BookmarkEditor = {
     this.onsaved = options.onsaved;
     this.oncancelled = options.oncancelled;
     var mode = 'add';
+    console.log('call BookmarksDatabase.get url: ' + this.data.url);
     BookmarksDatabase.get(this.data.url).then((function got(bookmark) {
+      console.log('get.then bookmark : ' + bookmark);
       if (bookmark) {
         this.data = bookmark;
         mode = 'put';
@@ -82,7 +84,10 @@ var BookmarkEditor = {
     this.data.name = this.bookmarkTitle.value;
     this.data.url = url;
 
-    BookmarksDatabase[this.mode](this.data).then(this.onsaved.bind(this),
-                                                 this.close.bind(this));
+    console.log('BookmarksDatabase mode: ' +
+        this.mode + '  data : ' + this.data);
+    BookmarksDatabase[this.mode](this.data)
+      .then(this.onsaved.bind(this),
+      this.close.bind(this));
   }
 };

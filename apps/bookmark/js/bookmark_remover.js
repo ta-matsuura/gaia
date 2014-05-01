@@ -5,6 +5,7 @@
 var BookmarkRemover = {
   init: function bookmarkRemover_init(data) {
     var id = data.id;
+    console.log('BookmarksDatabase.get id : ' + id);
     BookmarksDatabase.get(id).then(function got(bookmark) {
       if (!bookmark) {
         data.oncancelled('bookmark does not exist');
@@ -32,6 +33,7 @@ var BookmarkRemover = {
       document.getElementById('remove-action').addEventListener('click',
         function onConfirm(evt) {
           evt.target.removeEventListener('click', onConfirm);
+          console.log('BookmarksDatabase.remove id : ' + id);
           BookmarksDatabase.remove(id).then(data.onremoved, data.oncancelled);
         }
       );

@@ -31,6 +31,8 @@
 
   var BookmarksListener = {
     handleEvent: function(e) {
+      console.log('e.type ' + e.type);
+      console.log('e.target ' + e.target);
       switch (e.type) {
         case 'added':
           appendBookmark(e.target);
@@ -56,6 +58,10 @@
   BookmarksDatabase.getAll().then(function(bookmarks) {
     // We are going to iterate over system bookmarks
     Object.keys(bookmarks).forEach(function(id) {
+      console.log('then ... getAll  id: ' + id);
+      console.log('then ... bookmarks name: ' + bookmarks[id].name);
+      console.log('then ... bookmarks url: ' + bookmarks[id].url);
+      console.log('then ... bookmarks id: ' + bookmarks[id].id);
       appendBookmark(bookmarks[id]);
     });
   });

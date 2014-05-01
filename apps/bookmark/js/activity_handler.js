@@ -6,6 +6,7 @@ var ActivityHandler = {
     BookmarkEditor.init({
       data: activity.source.data,
       onsaved: function onsaved(saved) {
+        console.log('onsaved saved : ' + saved);
         window.addEventListener('status-hidden', function hidden() {
           window.removeEventListener('status-hidden', hidden);
           activity.postResult(saved ? 'saved' : 'updated');

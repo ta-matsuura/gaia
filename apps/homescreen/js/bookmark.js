@@ -69,6 +69,7 @@ Bookmark.prototype = {
 
   function updateHomescreenRevisionId() {
     BookmarksDatabase.getRevisionId().then(function gotRevisionId(revisionId) {
+      console.log('updateHomescreenRevisionId revisionID' + revisionId);
       asyncStorage.setItem(revisionIdStorageKey, revisionId);
     });
   }

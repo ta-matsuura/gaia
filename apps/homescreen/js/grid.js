@@ -971,11 +971,14 @@ var GridManager = (function() {
 
         // At this point we are going to propagate our bookmarks to system
         bookmarks.forEach(function(id) {
+          console.log('processBookmarks descript:' +
+            bookmarksById[id].getDescriptor());
           BookmarksDatabase.add(bookmarksById[id].getDescriptor()).
                             then(onProccessed, onProccessed);
         });
       } else {
         BookmarksDatabase.getRevisionId().then(function(systemRevisionId) {
+          console.log('processBookmarks systemRevisionId:' + systemRevisionId);
           if (homescreenRevisionId !== systemRevisionId) {
             // Not synchronized (bookmarks added/modified/deleted while it was
             // not running)
@@ -991,8 +994,11 @@ var GridManager = (function() {
 
   function mergeBookmarks(done) {
     BookmarksDatabase.getAll().then(function(systemBookmarks) {
+      console.log('Promise no resolve ??:');
       // We are going to iterate over system bookmarks
       Object.keys(systemBookmarks).forEach(function(id) {
+        console.log('mergeBookmarks systemBookmarks:' + systemBookmarks);
+        console.log('mergeBookmarks id:' + id);
         if (bookmarksById[id]) {
           // Deleting from the list because it should not be removed from grid
           delete bookmarksById[id];
@@ -1028,10 +1034,12 @@ var GridManager = (function() {
     }
 
     processBookmarks(function done() {
+      console.log('done START promise no reject?');
       BookmarksManager.updateHomescreenRevisionId();
       BookmarksManager.attachListeners();
       bookmarksById = null;
       ensurePagesOverflow(removeEmptyPages);
+      console.log('done END');
     });
 
     appMgr.oninstall = function oninstall(event) {
